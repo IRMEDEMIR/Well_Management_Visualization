@@ -141,7 +141,7 @@ namespace tpao_project_01
                         wellbore.WellboreAdi = wellborePartsSlashSeparated[0];
                         if (!wellborelar.ContainsKey(wellbore.WellboreAdi))
                         {
-                            wellborelar[wellbore.WellboreAdi] = wellbore;
+                            wellborelar[wellbore.WellboreAdi] = wellbore; 
                         }
                     }
                     

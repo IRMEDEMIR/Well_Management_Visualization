@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace TPAO_01
 {
-    internal class Wellborelar
+    internal class Wellbore
     {
         // Private field
         private string _wellboreAdi;
 
         // Parameter Constructor
-        public Wellborelar(string wellboreAdi)
+        public Wellbore(string wellboreAdi)
         {
             _wellboreAdi = wellboreAdi;
         }
@@ -25,7 +25,7 @@ namespace TPAO_01
         }
 
         // Public property for Kuyular
-        public Kuyular Kuyular { get; set; }
+        public Kuyu Kuyu { get; set; }
     }
 }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TPAO_01
 {
-    internal class Kuyu_Gruplari
+    internal class Kuyu_Grubu
     {
         //Variables
         private string _kuyuGrubuAdi;
@@ -14,13 +14,13 @@ namespace TPAO_01
         //Constructors
 
         //Parameter Constructor
-        public Kuyu_Gruplari(string kuyuGrubuAdi)
+        public Kuyu_Grubu(string kuyuGrubuAdi)
         {
             _kuyuGrubuAdi = kuyuGrubuAdi;
         }
 
         //Properties
-        public Sahalar Sahalar { get; set; }
+        public Saha Saha { get; set; }
         public string KuyuGrubuAdi
         {
             get { return _kuyuGrubuAdi; }

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace TPAO_01
 {
-    internal class Kuyular
+    internal class Kuyu
     {
         //Variables
         private string _kuyuAdi;
 
         // Constructor
-        public Kuyular(string kuyuAdi)
+        public Kuyu(string kuyuAdi)
         {
             _kuyuAdi = kuyuAdi;
         }
@@ -22,8 +22,8 @@ namespace TPAO_01
             get { return _kuyuAdi; }
             set { _kuyuAdi = value; }
         }
-        public Kuyu_Gruplari Kuyu_Gruplari {get; set; }
-        public Sahalar Sahalar { get; set; }
+        public Kuyu_Grubu Kuyu_Grubu {get; set; }
+        public Saha Saha { get; set; }
 
     }
 }

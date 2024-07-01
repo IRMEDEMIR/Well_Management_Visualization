@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace TPAO_01
 {
-    internal class Sahalar
+    internal class Saha
     {
         //Variables
         private string _sahaAdi;
 
         //Constructor
-        public Sahalar(string sahaAdi)
+        public Saha(string sahaAdi)
         {
             _sahaAdi = sahaAdi;
         }
-        public Sahalar()
+        public Saha()
         {
             _sahaAdi = null;
         }

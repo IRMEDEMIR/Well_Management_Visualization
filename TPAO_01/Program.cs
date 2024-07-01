@@ -10,16 +10,19 @@ namespace tpao_project_01
     {
         static void Main(string[] args)
         {
-            string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
+            //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
 
-            string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
+            string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
+           
 
+            Dictionary<string, Saha> sahalar = new Dictionary<string, Saha>();
+            Dictionary<string, Kuyu_Grubu> kuyuGruplari = new Dictionary<string, Kuyu_Grubu>();
+            Dictionary<string, Kuyu> kuyular = new Dictionary<string, Kuyu>();
+            Dictionary<string, Wellbore> wellborelar = new Dictionary<string, Wellbore>();
 
-            List<Saha> SahaList = [];
-            List<Kuyu_Grubu> Kuyu_GrubuList = [];
-            List<Kuyu> KuyuList = [];
-            List<Wellbore> WellboreList = [];
 
             try
             {
@@ -34,67 +37,69 @@ namespace tpao_project_01
                     string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // [36][K1][S][R]
 
                     string kuyuGrubuAdi = wellboreComponents[0]; // 36
-                    string kuyuGrubuEntry = sahaAdi + '-' + kuyuGrubuAdi;
+                    string kuyuGrubuEntry = sahaAdi + '-' + kuyuGrubuAdi; // ADANA-26
 
-                    // SahaList içinde sahaAdi'nin unique olup olmadığını kontrol et
-                    bool sahaExists = SahaList.Any(saha => saha.SahaAdi == sahaAdi);
+                  
 
-                    // Eğer SahaList içinde yoksa yeni Sahalar nesnesi oluşturup ekleyin
-                    if (!sahaExists)
+                    Saha saha;
+                    if (!sahalar.TryGetValue(sahaAdi, out saha))
                     {
-                        Saha saha = new Saha(sahaAdi);
-                        SahaList.Add(saha);
+                        saha = new Saha(sahaAdi);
+                        sahalar[saha.SahaAdi] = saha;
                     }
 
-                    // Kuyu_GruplariList içinde kuyuGrubuAdi'nin unique olup olmadığını kontrol et
-                    bool kuyuGrubuExists = Kuyu_GrubuList.Any(kuyuGrubu => kuyuGrubu.KuyuGrubuAdi == kuyuGrubuEntry);
-
-                    // Eğer Kuyu_GruplariList içinde yoksa yeni Kuyu_Gruplari nesnesi oluşturup ekleyin
-                    if (!kuyuGrubuExists)
+                    Kuyu_Grubu kuyuGrubu;
+                    if (!kuyuGruplari.TryGetValue(kuyuGrubuEntry, out kuyuGrubu))
                     {
-                        Kuyu_Grubu kuyuGrubu = new Kuyu_Grubu(kuyuGrubuEntry);
-                        Kuyu_GrubuList.Add(kuyuGrubu);
+                        kuyuGrubu = new Kuyu_Grubu(kuyuGrubuEntry);
+                        kuyuGruplari[kuyuGrubu.KuyuGrubuAdi] = kuyuGrubu;
                     }
 
-                    bool kuyuExists = KuyuList.Any(kuyu => kuyu.KuyuAdi == kuyuGrubuEntry);
-
-                    // Eğer KuyuList içinde yoksa yeni Kuyular nesnesi oluşturup ekleyin
-                    if (!kuyuExists)
+                    Kuyu kuyu;
+                    if (!kuyular.TryGetValue(kuyuGrubuEntry, out kuyu))
                     {
-                        Kuyu kuyu = new Kuyu(kuyuGrubuEntry);
-                        KuyuList.Add(kuyu);
+                        kuyu = new Kuyu(kuyuGrubuEntry);
+                        kuyular[kuyu.KuyuAdi] = kuyu;
                     }
 
-                    // KuyuList'e kuyu bilgilerini ekleyin (burada kuyuDict kullanımı yerine KuyuList'e doğrudan ekleyeceğiz)
+                    // kuyular dictionary'ine kuyu bilgileri eklemme
                     for (int i = 1; i < wellboreComponents.Length; i++)
                     {
                         if (wellboreComponents[i].StartsWith("K"))
                         {
                             // Önceki /K değerlerini oluştur
                             int kValue;
+                            if (wellboreComponents[i].Length == 1)
+                            {
+                                string previous = $"{kuyuGrubuEntry}/K";
+                                kuyular[previous] = new Kuyu(previous);
+                            }
                             if (int.TryParse(wellboreComponents[i].Substring(1), out kValue))
                             {
                                 for (int j = kValue; j >= 1; j--)
                                 {
                                     string previousK = $"{kuyuGrubuEntry}/K{j}";
-                                    AddIfNotExists(KuyuList, new Kuyu(previousK));
-
+                                    if (!kuyular.ContainsKey(previousK))
+                                    {
+                                        kuyular[previousK] = new Kuyu(previousK);
+                                    }
                                 }
                                 string previousKK = $"{kuyuGrubuEntry}/K";
-                                AddIfNotExists(KuyuList, new Kuyu(previousKK));
-
+                                if (!kuyular.ContainsKey(previousKK))
+                                {
+                                    kuyular[previousKK] = new Kuyu(previousKK);
+                                }
                             }
-
                         }
                     }
 
                     // Wellborelar wellbore = new Wellborelar(line);
 
                     // WellBorelarList içinde wellbore varlığını kontrol et ve ekleyin
-                    if (!WellboreList.Any(w => w.WellboreAdi == line))
+                    if (!wellborelar.ContainsKey(line))
                     {
                         Wellbore wellbore = new Wellbore(line);
-                        WellboreList.Add(wellbore);
+                        wellborelar[line] = wellbore;
 
                         string[] wellborePartsSlashSeparated = line.Split('/'); // slashlara göre parçaladı
 
@@ -111,50 +116,41 @@ namespace tpao_project_01
                                     for (int i = sValue; i > 0; i--)
                                     {
                                         string wellboreName = previous + "/" + wellType + i; //öncesi + /S2 ,  öncesi + /S1  
-                                        AddIfNotExists(WellboreList, new Wellbore(wellboreName));
-
+                                        if (!wellborelar.ContainsKey(wellboreName))
+                                        {
+                                            wellborelar[wellboreName] = new Wellbore(wellboreName);
+                                        }
                                     }
                                     string wellboreNameWithoutNumber = previous + "/" + wellType; // ADANA-36/K1/S
-                                    AddIfNotExists(WellboreList, new Wellbore(wellboreNameWithoutNumber));
-
+                                    if (!wellborelar.ContainsKey(wellboreNameWithoutNumber))
+                                    {
+                                        wellborelar[wellboreNameWithoutNumber] = new Wellbore(wellboreNameWithoutNumber);
+                                    }
                                 }
                             }
                             else
                             {
                                 string previous = string.Join("/", wellborePartsSlashSeparated, 0, j); //ADANA-36/K1/R
                                 string wellboreNameWithoutNumber = previous + "/" + wellType;
-                                AddIfNotExists(WellboreList, new Wellbore(wellboreNameWithoutNumber));
-
+                                if (!wellborelar.ContainsKey(wellboreNameWithoutNumber))
+                                {
+                                    wellborelar[wellboreNameWithoutNumber] = new Wellbore(wellboreNameWithoutNumber);
+                                }
                             }
                         }
                         wellbore.WellboreAdi = wellborePartsSlashSeparated[0];
-                        AddIfNotExists(WellboreList, wellbore);
-
+                        if (!wellborelar.ContainsKey(wellbore.WellboreAdi))
+                        {
+                            wellborelar[wellbore.WellboreAdi] = wellbore;
+                        }
                     }
+                    
                 }
 
-                //foreach (var kuyu in KuyuList)
-                //{
-                //    Console.WriteLine(kuyu.KuyuAdi);
-                //}
-                //foreach (var saha in SahaList)
-                //{
-                //    Console.WriteLine(saha.SahaAdi);
-                //}
-                //foreach (var kuyugrubu in Kuyu_GruplariList)
-                //{
-                //    Console.WriteLine(kuyugrubu.KuyuGrubuAdi);
-                //}
-                //foreach (var wellbore in WellboreList)
-                //{
-                //    Console.WriteLine(wellbore.WellboreAdi);
-                //}
-
-
-                WriteListToCsv(SahaList, Path.Combine(outputDir, "Sahalar.csv"), saha => saha.SahaAdi);
-                WriteListToCsv(Kuyu_GrubuList, Path.Combine(outputDir, "Kuyu_Gruplari.csv"), kuyuGrubu => kuyuGrubu.KuyuGrubuAdi);
-                WriteListToCsv(KuyuList, Path.Combine(outputDir, "Kuyular.csv"), kuyu => kuyu.KuyuAdi);
-                WriteListToCsv(WellboreList, Path.Combine(outputDir, "Wellborelar.csv"), wellbore => wellbore.WellboreAdi);
+                WriteToCsv(sahalar.Keys, Path.Combine(outputDir, "Sahalar.csv"));
+                WriteToCsv(kuyuGruplari.Keys, Path.Combine(outputDir, "Kuyu Grupları.csv"));
+                WriteToCsv(kuyular.Keys, Path.Combine(outputDir, "Kuyular.csv"));
+                WriteToCsv(wellborelar.Keys, Path.Combine(outputDir, "Wellborelar.csv"));
 
 
 
@@ -175,21 +171,17 @@ namespace tpao_project_01
             }
         }
 
-        static void WriteListToCsv<T>(List<T> list, string filePath, Func<T, string> formatFunc)
+       
+        static void WriteToCsv(IEnumerable<string> dataList, string outputPath)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath)); // Klasörü oluşturur (varsa tekrar oluşturmaz)
-
-            using (StreamWriter sw = new StreamWriter(filePath))
-            {
-                foreach (var item in list)
-                {
-                    sw.WriteLine(formatFunc(item));
-                }
-            }
+            List<string> lines = new List<string> {  };
+            lines.AddRange(dataList);
+            File.WriteAllLines(outputPath, lines);
         }
+    }
 
 
 
 
     }   
-}
+

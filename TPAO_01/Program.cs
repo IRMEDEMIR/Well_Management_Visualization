@@ -30,10 +30,10 @@ namespace tpao_project_01
 
                 foreach (string line in lines)
                 {
-                    string[] parts = line.Split('-'); // ADANA-36/K1/S/R
-                    string sahaAdi = parts[0]; // ADANA
-                    string kuyuGrubuveKuyu = parts[1]; // 36/K1/S/R
+                    string sahaAdi = SahalarıOlustur(line);  // ADANA
 
+                    string kuyuGrubuveKuyu = KuyuGruplarınıOlustur(line);  // ADANA-36
+                        
                     string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // [36][K1][S][R]
 
                     string kuyuGrubuAdi = wellboreComponents[0]; // 36
@@ -160,6 +160,29 @@ namespace tpao_project_01
                 Console.WriteLine($"Hata: {ex.Message}");
             }
 
+
+        }
+        public static string SahalarıOlustur(string line)
+        {
+            string[] parts = line.Split('-');
+            string sahaAdi = parts[0];
+            return sahaAdi;
+        }
+
+        public static string KuyuGruplarınıOlustur(string line)
+        {
+            string[] parts = line.Split('/');
+            string KuyuGrubu = parts[0];
+            return KuyuGrubu;
+        }
+
+        public static void KuyularıOlustur()
+        {
+
+        }
+
+        public static void WellborelarıOlustur()
+        {
 
         }
 

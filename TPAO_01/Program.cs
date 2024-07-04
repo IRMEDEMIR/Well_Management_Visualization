@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using TPAO_01;
-// ADDİFNOTEXİST eklenecek
+
 namespace tpao_project_01
 {
     class Program
@@ -30,16 +31,7 @@ namespace tpao_project_01
 
                 foreach (string line in lines)
                 {
-                    string sahaAdi = SahalarıOlustur(line);  // ADANA
-
-                    string kuyuGrubuveKuyu = KuyuGruplarınıOlustur(line);  // ADANA-36
-                        
-                    string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // [36][K1][S][R]
-
-                    string kuyuGrubuAdi = wellboreComponents[0]; // 36
-                    string kuyuGrubuEntry = sahaAdi + '-' + kuyuGrubuAdi; // ADANA-26
-
-                  
+                    string sahaAdi = SahaOlustur(line);  // ADANA
 
                     Saha saha;
                     if (!sahalar.TryGetValue(sahaAdi, out saha))
@@ -48,11 +40,35 @@ namespace tpao_project_01
                         sahalar[saha.SahaAdi] = saha;
                     }
 
+
+                    string kuyuGrubuAdi = KuyuGrubuOlustur(line);  // ADANA-36
+                        
                     Kuyu_Grubu kuyuGrubu;
-                    if (!kuyuGruplari.TryGetValue(kuyuGrubuEntry, out kuyuGrubu))
+                    if (!kuyuGruplari.TryGetValue(kuyuGrubuAdi, out kuyuGrubu))
                     {
-                        kuyuGrubu = new Kuyu_Grubu(kuyuGrubuEntry);
+                        kuyuGrubu = new Kuyu_Grubu(kuyuGrubuAdi);
                         kuyuGruplari[kuyuGrubu.KuyuGrubuAdi] = kuyuGrubu;
+                    }
+
+                    foreach (KuyuOlustur(line))
+                    {
+                        AddKuyu(kuyular, kuyu)
+                    } //liste 
+
+                    static void AddKuyu(Dictionary<string, Kuyu> kuyular, string kuyuEntry)
+                    {
+                        if (!kuyular.ContainsKey(kuyuEntry))
+                        {
+                            kuyular[kuyuEntry] = new Kuyu(kuyuEntry);
+                        }
+                    }
+
+                    static void AddSaha(Dictionary<string, Saha> sahalar, string sahaAdi)
+                    {
+                        if (!sahalar.ContainsKey(sahaAdi))
+                        {
+                            sahalar[sahaAdi] = new Saha(sahaAdi);
+                        }
                     }
 
                     Kuyu kuyu;
@@ -162,28 +178,99 @@ namespace tpao_project_01
 
 
         }
-        public static string SahalarıOlustur(string line)
+        public static string SahaOlustur(string line)
         {
             string[] parts = line.Split('-');
             string sahaAdi = parts[0];
             return sahaAdi;
         }
 
-        public static string KuyuGruplarınıOlustur(string line)
+        public static string KuyuGrubuOlustur(string line)
         {
             string[] parts = line.Split('/');
             string KuyuGrubu = parts[0];
             return KuyuGrubu;
         }
 
-        public static void KuyularıOlustur()
+        public static List<string> KuyuOlustur(string line)
         {
+            //KuyuAdlarını bir diziye ye da listeye ekleyip return et ve ekleme fonksiyonuna ver
+            string[] parts = line.Split('/');
+            string KuyuAdi;
 
+            List<string> OlusturulanKuyular = new List<string>();
+
+            // Eğer parts en az iki eleman içeriyorsa, ikinci elemanda "K" olup olmadığını kontrol edelim
+            if (parts.Length > 1 && parts[1].Contains("K"))
+            {
+                KuyuAdi = parts[0];  //ADANA-36
+                OlusturulanKuyular.Add(KuyuAdi);
+
+                KuyuAdi = parts[0] + "/" + parts[1];  //ADANA-36/K1
+                OlusturulanKuyular.Add(KuyuAdi);
+
+                int kValue;
+                if (int.TryParse(parts[1].Substring(1), out kValue))         //k nın yanındaki sayıyı alıyor
+                {
+                    for (int i = kValue - 1; i > 0; i--)
+                    {
+                        KuyuAdi = parts[0] + "/K" + i;
+                        OlusturulanKuyular.Add(KuyuAdi);
+                    }
+                }
+
+                KuyuAdi = parts[0] + "/K";  //ADANA-36/K
+                OlusturulanKuyular.Add(KuyuAdi);
+            }
+            else  // ADANA-36  veya ADANA-36/R/S  falan
+            {
+                KuyuAdi = parts[0];
+                OlusturulanKuyular.Add(KuyuAdi);
+            }
+            return OlusturulanKuyular;
         }
 
-        public static void WellborelarıOlustur()
+        public static List<string> WellborelarıOlustur(string line)
         {
+            string WellBoreAdi;
 
+            List<string> OlusturulanWellborelar = new List<string>();
+
+            WellBoreAdi = line;  //önce tamamını ekledi ADANA-36/K1/R/S2
+            OlusturulanWellborelar.Add(line);
+
+            string[] parts = line.Split('/'); //slashlara göre parçaladı
+
+            int k = parts.Length - 1;
+            for (int j = k; j > 0; j--)  //son elemandan ilk elemana kadar   // [ADANA-36] [K1] [R] [S2] 
+            {
+                char wellType = parts[j][0];  //S
+                if (parts[j].Length > 1) //S1
+                {
+                    int kValue;
+                    if (int.TryParse(parts[j].Substring(1), out kValue))  //1
+                    {
+                        string öncesi = string.Join("/", parts, 0, j); //ADANA-36/K1/R
+                        for (int i = kValue; i > 0; i--)
+                        {
+                            WellBoreAdi = öncesi + "/" + wellType + i;  //öncesi + /S2 ,  öncesi + /S1  
+                            OlusturulanWellborelar.Add(WellBoreAdi);
+                        }
+                        WellBoreAdi = öncesi + "/" + wellType; //öncesi + S
+                        OlusturulanWellborelar.Add(WellBoreAdi);
+                    }
+                }
+                else
+                {
+                    string öncesi = string.Join("/", parts, 0, j); //ADANA-36/K1/R
+                    WellBoreAdi = öncesi + "/" + wellType;
+                    OlusturulanWellborelar.Add(WellBoreAdi);
+                }
+            }
+            WellBoreAdi = parts[0];
+            OlusturulanWellborelar.Add(WellBoreAdi);
+
+            return OlusturulanWellborelar;
         }
 
         static void AddIfNotExists<T>(List<T> list, T item)
@@ -208,3 +295,8 @@ namespace tpao_project_01
 
     }   
 
+
+//sayısını kontrol et 
+// kuyuları kontrol et
+// verinin formatına göre kontrol et
+//static nedir öğren

@@ -216,15 +216,7 @@ namespace tpao_project_01
             }
         }
 
-        static void AddIfNotExists<T>(List<T> list, T item)
-        {
-            if (!list.Any(x => x.Equals(item)))
-            {
-                list.Add(item);
-            }
-        }
-
-
+       
         static void WriteToCsv(IEnumerable<string> dataList, string outputPath)
         {
             List<string> lines = new List<string> { };

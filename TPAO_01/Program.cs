@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TPAO_01;
 
 namespace tpao_project_01
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+         static void Main(string[] args)
         {
             //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
@@ -17,14 +18,16 @@ namespace tpao_project_01
             //string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
-            string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
+            //string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
+
+            string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
             Dictionary<string, Saha> sahalar = new Dictionary<string, Saha>();
             Dictionary<string, Kuyu_Grubu> kuyuGruplari = new Dictionary<string, Kuyu_Grubu>();
             Dictionary<string, Kuyu> kuyular = new Dictionary<string, Kuyu>();
             Dictionary<string, Wellbore> wellborelar = new Dictionary<string, Wellbore>();
-
 
             try
             {
@@ -41,15 +44,11 @@ namespace tpao_project_01
                     //sahaları dictionary ye ekle
                     AddSaha(sahalar, sahaAdi);
 
-
-
                     //kuyu grubu oluşturma fonksiyonunu çağır
                     string kuyuGrubuAdi = KuyuGrubuOlustur(line);  // ADANA-36
 
                     //kuyugruplarını dictionary ye ekle
                     AddKuyuGrubu(kuyuGruplari, kuyuGrubuAdi);
-
-
 
                     //kuyuOluştur fonksiyonunu çağır ve liste olarak al
                     List<string> KuyuListesi = KuyuOlustur(line);
@@ -60,7 +59,6 @@ namespace tpao_project_01
                         AddKuyu(kuyular, kuyu);
                     }
 
-
                     //wellboreOluştur fonksiyonunu çağır ve liste olarak al
                     List<string> wellboreListesi = WellborelarıOlustur(line);
 
@@ -70,7 +68,6 @@ namespace tpao_project_01
                         AddWellbore(wellborelar, wellbore);
                     }
 
-
                 }
 
                 WriteToCsv(sahalar.Keys, Path.Combine(outputDir, "Sahalar.csv"));
@@ -78,28 +75,57 @@ namespace tpao_project_01
                 WriteToCsv(kuyular.Keys, Path.Combine(outputDir, "Kuyular.csv"));
                 WriteToCsv(wellborelar.Keys, Path.Combine(outputDir, "Wellborelar.csv"));
 
-
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Hata: {ex.Message}");
             }
-
-
         }
         public static string SahaOlustur(string line)
         {
             string[] parts = line.Split('-');
-            string sahaAdi = parts[0];
-            return sahaAdi;
+
+            if (parts.Length > 2)
+            {
+                Console.WriteLine("Error");
+                string err = "Error";
+                return err;
+            }
+
+            else if (Regex.IsMatch(parts[0], @"^[a-zA-Z]+$"))
+            {
+                return parts[0];
+            }
+
+            else
+            {
+                Console.WriteLine("Error");
+                string err = "Error";
+                return err;
+            }
         }
 
         public static string KuyuGrubuOlustur(string line)
         {
-            string[] parts = line.Split('/');
-            string KuyuGrubu = parts[0];
-            return KuyuGrubu;
+            string[] parts = line.Split('-');
+            string kuyuGrubuveKuyu = parts[1]; // 36/K1/S
+            string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+            string kuyuGrubuEntry = parts[0] + "-" + wellboreComponents[0];
+
+            if (parts.Length > 2)
+            {
+                string err = "Error";
+                Console.WriteLine(err);
+                return err;
+            }
+            else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$"))
+            {
+                string err = "Error";
+                Console.WriteLine(err);
+                return err;
+            }
+            else
+                return kuyuGrubuEntry;
         }
 
         public static List<string> KuyuOlustur(string line)
@@ -224,5 +250,50 @@ namespace tpao_project_01
             File.WriteAllLines(outputPath, lines);
         }
     }
+}
 
-}   
+//public static string ParseSahaAdi(string line)
+//{
+//    string[] parts = line.Split('-');
+
+//    if (parts.Length > 2)
+//    {
+//        Console.WriteLine("Error");
+//        string err = "Error";
+//        return err;
+//    }
+
+//    else if (Regex.IsMatch(parts[0], @"^[a-zA-Z]+$"))
+//    {
+//        return parts[0];
+//    }
+
+//    else
+//    {
+//        Console.WriteLine("Error");
+//        string err = "Error";
+//        return err;
+//    }
+//}
+
+//public static string ParseKuyuGrubuAdi(string line)
+//{
+//    string[] parts = line.Split('-');
+//    string kuyuGrubuveKuyu = parts[1]; // 36/K1/S
+//    string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+
+//    if (parts.Length > 2)
+//    {
+//        string err = "Error";
+//        Console.WriteLine(err);
+//        return err;
+//    }
+//    else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$"))
+//    {
+//        string err = "Error";
+//        Console.WriteLine(err);
+//        return err;
+//    }
+//    else
+//        return wellboreComponents[0];
+//}

@@ -11,15 +11,17 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
             // Arrange
             string line1 = "AD/?A14N~~A-36>";
             string line2 = "ADANA-36/K8/S12/R25";
+            string line3 = "ADANA-UVI/K2/S3";
 
             // Act
             string result1 = Program.SahaOlustur(line1);
             string result2 = Program.SahaOlustur(line2);
+            string result3 = Program.SahaOlustur(line3);
 
             // Assert
             Assert.Equal("Error", result1); // Saha adi kisminda hata var mý?
             Assert.Equal("ADANA", result2); // Saha adi kisminda hata var mý?
-
+            Assert.Equal("Error", result3); // Saha adi kisminda hata var mý?
         }
 
         [Fact]

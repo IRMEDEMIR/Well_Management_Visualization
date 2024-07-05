@@ -16,14 +16,14 @@ namespace tpao_project_01
             //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
 
-            //string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            //string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
+            string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
             //string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
 
-            string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
+           // string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+           // string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
             Dictionary<string, Saha> sahalar = new Dictionary<string, Saha>();
             Dictionary<string, Kuyu_Grubu> kuyuGruplari = new Dictionary<string, Kuyu_Grubu>();
@@ -130,33 +130,45 @@ namespace tpao_project_01
 
         public static List<string> KuyuOlustur(string line)
         {
-            //KuyuAdlarını bir diziye ye da listeye ekleyip return et ve ekleme fonksiyonuna ver
+
             string[] parts = line.Split('/');
             string KuyuAdi;
 
             List<string> OlusturulanKuyular = new List<string>();
 
-            // Eğer parts en az iki eleman içeriyorsa, ikinci elemanda "K" olup olmadığını kontrol edelim
             if (parts.Length > 1 && parts[1].Contains("K"))
             {
                 KuyuAdi = parts[0];  //ADANA-36
                 OlusturulanKuyular.Add(KuyuAdi);
 
-                KuyuAdi = parts[0] + "/" + parts[1];  //ADANA-36/K1
-                OlusturulanKuyular.Add(KuyuAdi);
-
-                int kValue;
-                if (int.TryParse(parts[1].Substring(1), out kValue))         //k nın yanındaki sayıyı alıyor
+                if (parts[1].Length == 1)
                 {
-                    for (int i = kValue - 1; i > 0; i--)
+                    KuyuAdi = parts[0] + "/K";  // ADANA-36/K
+                    OlusturulanKuyular.Add(KuyuAdi);
+                }
+                else
+                {
+                    // "K" harfinden sonraki sayıyı al ve geriye doğru kuyu adlarını oluştur
+                    int kValue;
+                    if (int.TryParse(parts[1].Substring(1), out kValue))
                     {
-                        KuyuAdi = parts[0] + "/K" + i;
+                        KuyuAdi = parts[0] + "/" + parts[1];  // ADANA-36/K1
+                        OlusturulanKuyular.Add(KuyuAdi);
+
+                        for (int i = kValue - 1; i > 0; i--)
+                        {
+                            KuyuAdi = parts[0] + "/K" + i;
+                            OlusturulanKuyular.Add(KuyuAdi);
+                        }
+                        KuyuAdi = parts[0] + "/K";  // ADANA-36/K
                         OlusturulanKuyular.Add(KuyuAdi);
                     }
-                }
+                    else
+                    {
 
-                KuyuAdi = parts[0] + "/K";  //ADANA-36/K
-                OlusturulanKuyular.Add(KuyuAdi);
+                        return new List<string>() { "Error" };
+                    }
+                }
             }
             else  // ADANA-36  veya ADANA-36/R/S  falan
             {

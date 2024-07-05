@@ -40,6 +40,36 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
         }
 
         [Fact]
+        public void ParseKuyuAdi_ShouldReturnCorrectResult_ForComplexInput()
+        {
+            // arrange
+
+            string line = "ADANA-36/S/M";
+            string line1 = "ADANA-36/K1S";
+            string line2 = "ADANA-36/K1";
+           // string line3 = "AD/?A14N~~A-36>";
+
+            // act
+            List<string> result = Program.KuyuOlustur(line);
+            List<string> result1 = Program.KuyuOlustur(line1);
+            List<string> result2 = Program.KuyuOlustur(line2);
+           // List<string> result3 = Program.KuyuOlustur(line3);
+
+            // assert
+            var expected = new List<string> { "ADANA-36" };
+            var expected1 = new List<string> { "Error" };
+            var expected2 = new List<string> { "ADANA-36", "ADANA-36/K1", "ADANA-36/K" };
+            //var expected3 = new List<string> { "Error" };
+
+
+            Assert.Equal(expected, result);
+            Assert.Equal(expected1, result1);
+            Assert.Equal(expected2, result2);
+            //Assert.Equal(expected3, result3);
+
+        }
+
+        [Fact]
         public void ParseWellboreComponents_ShouldReturnCorrectResult_ForComplexInput()
         {
             // Arrange

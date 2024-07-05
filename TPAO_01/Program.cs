@@ -180,7 +180,7 @@ namespace tpao_project_01
             string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
             string kuyuGrubuEntry = parts[0] + "-" + wellboreComponents[0];
 
-            if (parts.Length > 2)
+            if (parts.Length > 2)// '-' Kontorlü
             {
                 OlusturulanWellborelar.Clear();
                 OlusturulanWellborelar.Add("Error");
@@ -194,6 +194,8 @@ namespace tpao_project_01
             }
             else
             {
+                OlusturulanWellborelar.Clear();
+
 
                 string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
                 if (slashParts.Length > 1 && !Regex.IsMatch(slashParts[1], @"^[KSRM]\d*$"))
@@ -204,7 +206,7 @@ namespace tpao_project_01
                     return OlusturulanWellborelar;
                 }
 
-                OlusturulanWellborelar.Clear();
+
 
                 int k = slashParts.Length - 1;
                 for (int j = k; j > 0; j--)  //son elemandan ilk elemana kadar   // [ADANA-36] [K1] [R] [S2] 

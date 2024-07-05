@@ -90,7 +90,7 @@ namespace tpao_project_01
             List<string> result3 = Program.KuyuOlustur(line3);
             List<string> result4 = Program.KuyuOlustur(line4);
             List<string> result5 = Program.KuyuOlustur(line5);
-            List<string> result6 = Program.KuyuOlustur(line5);
+            List<string> result6 = Program.KuyuOlustur(line6);
 
             // assert
             var expected = new List<string> { "Error" };

@@ -16,14 +16,14 @@ namespace tpao_project_01
             //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\";
 
-            string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
+            //string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
             //string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
 
-            //string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            //string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
+            string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
             Dictionary<string, Saha> sahalar = new Dictionary<string, Saha>();
             Dictionary<string, Kuyu_Grubu> kuyuGruplari = new Dictionary<string, Kuyu_Grubu>();

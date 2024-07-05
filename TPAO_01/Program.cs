@@ -13,14 +13,14 @@ namespace tpao_project_01
 
         static void Main(string[] args)
         {
-            //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
-            //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
+            string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\";
 
             //string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
-            string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
+            //string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
 
            // string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
            // string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
@@ -84,7 +84,16 @@ namespace tpao_project_01
         }
         public static string SahaOlustur(string line)
         {
-             if(!Regex.IsMatch(line, @"-[0-9]+/"))
+
+            string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
+            if (slashParts.Length > 1 && !Regex.IsMatch(slashParts[1], @"^[KSRM]\d*$"))
+            {
+                Console.WriteLine("Error");
+                string err = "Error";
+                return err;
+            }
+
+            else if (!Regex.IsMatch(line, @"-[0-9]+/"))
              {
                 Console.WriteLine("Error");
                 string err = "Error";
@@ -120,7 +129,15 @@ namespace tpao_project_01
             string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
             string kuyuGrubuEntry = parts[0] + "-" + wellboreComponents[0];
 
-            if (parts.Length > 2)
+
+            string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
+            if (slashParts.Length > 1 && !Regex.IsMatch(slashParts[1], @"^[KSRM]\d*$"))
+            {
+                Console.WriteLine("Error");
+                string err = "Error";
+                return err;
+            }
+            else if (parts.Length > 2)
             {
                 string err = "Error";
                 Console.WriteLine(err);
@@ -136,17 +153,37 @@ namespace tpao_project_01
                 return kuyuGrubuEntry;
         }
 
+
         public static List<string> KuyuOlustur(string line)
         {
-
             string[] parts = line.Split('/');
             string KuyuAdi;
-
             List<string> OlusturulanKuyular = new List<string>();
+
+            string[] parts1 = line.Split('-');
+            if (parts1.Length > 2) // '-' kontrolü
+            {
+                return new List<string>() { "Error" };
+            }
+
+            string kuyuGrubuveKuyu = parts1[1]; // 36/K1/S
+            string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+            string kuyuGrubuEntry = parts1[0] + "-" + wellboreComponents[0];
+
+            if (!Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts1[0], @"^[A-Z ]+$"))
+            {
+                return new List<string>() { "Error" };
+            }
+
+            string[] slashParts = line.Split('/'); // Slashlara göre parçaladı // ADANA-36 K1/R1
+            if (slashParts.Length > 1 && !Regex.IsMatch(slashParts[1], @"^[KSRM]\d*$"))
+            {
+                return new List<string>() { "Error" };
+            }
 
             if (parts.Length > 1 && parts[1].Contains("K"))
             {
-                KuyuAdi = parts[0];  //ADANA-36
+                KuyuAdi = parts[0];  // ADANA-36
                 OlusturulanKuyular.Add(KuyuAdi);
 
                 if (parts[1].Length == 1)
@@ -173,12 +210,11 @@ namespace tpao_project_01
                     }
                     else
                     {
-
                         return new List<string>() { "Error" };
                     }
                 }
             }
-            else  // ADANA-36  veya ADANA-36/R/S  falan
+            else  // ADANA-36 veya ADANA-36/R/S falan
             {
                 KuyuAdi = parts[0];
                 OlusturulanKuyular.Add(KuyuAdi);
@@ -299,52 +335,3 @@ namespace tpao_project_01
         }
     }
 }
-
-
-
-
-//public static string ParseSahaAdi(string line)
-//{
-//    string[] parts = line.Split('-');
-
-//    if (parts.Length > 2)
-//    {
-//        Console.WriteLine("Error");
-//        string err = "Error";
-//        return err;
-//    }
-
-//    else if (Regex.IsMatch(parts[0], @"^[a-zA-Z]+$"))
-//    {
-//        return parts[0];
-//    }
-
-//    else
-//    {
-//        Console.WriteLine("Error");
-//        string err = "Error";
-//        return err;
-//    }
-//}
-
-//public static string ParseKuyuGrubuAdi(string line)
-//{
-//    string[] parts = line.Split('-');
-//    string kuyuGrubuveKuyu = parts[1]; // 36/K1/S
-//    string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
-
-//    if (parts.Length > 2)
-//    {
-//        string err = "Error";
-//        Console.WriteLine(err);
-//        return err;
-//    }
-//    else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$"))
-//    {
-//        string err = "Error";
-//        Console.WriteLine(err);
-//        return err;
-//    }
-//    else
-//        return wellboreComponents[0];
-//}

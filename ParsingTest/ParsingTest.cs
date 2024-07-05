@@ -1,7 +1,7 @@
 using Xunit;
-using tpao_project_01; 
+using tpao_project_01;
 
-namespace tpao_project_01 // Test sýnýfýnýn namespace'i
+namespace tpao_project_01
 {
     public class ParsingTest
     {
@@ -12,16 +12,22 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
             string line1 = "AD/?A14N~~A-36>";
             string line2 = "ADANA-36/K8/S12/R25";
             string line3 = "ADANA-UVI/K2/S3";
+            string line4 = "36";
+            string line5 = "ADANA-36/T/M";
 
             // Act
             string result1 = Program.SahaOlustur(line1);
             string result2 = Program.SahaOlustur(line2);
             string result3 = Program.SahaOlustur(line3);
+            string result4 = Program.SahaOlustur(line4);
+            string result5 = Program.SahaOlustur(line5);
 
             // Assert
-            Assert.Equal("Error", result1); // Saha adi kisminda hata var mý?
-            Assert.Equal("ADANA", result2); // Saha adi kisminda hata var mý?
-            Assert.Equal("Error", result3); // Saha adi kisminda hata var mý?
+            Assert.Equal("Error", result1);
+            Assert.Equal("ADANA", result2);
+            Assert.Equal("Error", result3);
+            Assert.Equal("Error", result4);
+            Assert.Equal("Error", result5);
         }
 
         [Fact]
@@ -30,15 +36,20 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
             // Arrange
             string line = "ADANA-3ab6c";
             string line1 = "ADANA-36";
+            string line2 = "ADANA-36/T/M";
+            string line3 = "AD/?A14N~~A-36>";
 
             // Act
             string result = Program.KuyuGrubuOlustur(line);
             string result1 = Program.KuyuGrubuOlustur(line1);
+            string result2 = Program.KuyuGrubuOlustur(line2);
+            string result3 = Program.KuyuGrubuOlustur(line3);
 
             // Assert
-            Assert.Equal("Error", result);// Kuyu_Grubu kisminda hata var mý?
-            Assert.Equal("ADANA-36", result1);// Kuyu_Grubu kisminda hata var mý?
-
+            Assert.Equal("Error", result);
+            Assert.Equal("ADANA-36", result1);
+            Assert.Equal("Error", result2);
+            Assert.Equal("Error", result3);
         }
 
         [Fact]
@@ -46,28 +57,37 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
         {
             // arrange
 
-            string line = "ADANA-36/S/M";
+            string line = "ADANA-36/T/M";
             string line1 = "ADANA-36/K1S";
-            string line2 = "ADANA-36/K1";
-           // string line3 = "AD/?A14N~~A-36>";
+            string line2 = "ADANA-36/K11";
+            string line3 = "AD/?A14N~~A-36>";
+            string line4 = "ADANA-36/S/M";
+            string line5 = "ADANA-UVI/K2/S3";
 
             // act
             List<string> result = Program.KuyuOlustur(line);
             List<string> result1 = Program.KuyuOlustur(line1);
             List<string> result2 = Program.KuyuOlustur(line2);
-           // List<string> result3 = Program.KuyuOlustur(line3);
+            List<string> result3 = Program.KuyuOlustur(line3);
+            List<string> result4 = Program.KuyuOlustur(line4);
+            List<string> result5 = Program.KuyuOlustur(line5);
 
             // assert
-            var expected = new List<string> { "ADANA-36" };
+            var expected = new List<string> { "Error" };
             var expected1 = new List<string> { "Error" };
-            var expected2 = new List<string> { "ADANA-36", "ADANA-36/K1", "ADANA-36/K" };
-            //var expected3 = new List<string> { "Error" };
+            var expected2 = new List<string> { "ADANA-36", "ADANA-36/K11", "ADANA-36/K10", "ADANA-36/K9", "ADANA-36/K8", "ADANA-36/K7", "ADANA-36/K6", "ADANA-36/K5", "ADANA-36/K4", "ADANA-36/K3", "ADANA-36/K2", "ADANA-36/K1", "ADANA-36/K" };
+            var expected3 = new List<string> { "Error" };
+            var expected4 = new List<string> { "ADANA-36" };
+            var expected5 = new List<string> { "Error" };
 
+            Assert.Equal(13, result2.Count);
 
             Assert.Equal(expected, result);
             Assert.Equal(expected1, result1);
             Assert.Equal(expected2, result2);
-            //Assert.Equal(expected3, result3);
+            Assert.Equal(expected3, result3);
+            Assert.Equal(expected4, result4);
+            Assert.Equal(expected5, result5);
 
         }
 
@@ -78,7 +98,6 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
             string line = "ADANA-36/K1/S11";
             string line1 = "ADANA-36/KA/S11";
             string line2 = "ADANA-36/T/S11";
-
 
             // Act
             List<string> result = Program.WellboreOlustur(line);
@@ -111,61 +130,5 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
         }
 
 
-        //[Fact]
-        ////public void ParseWellboreComponents_ShouldReturnCorrectResult_ForSimpleInput()
-        //{
-        //    // Arrange
-        //    string line = "ADANA-36";
-
-        //    // Act
-        //    string[] result = Program.KuyuOlustur(line);
-
-        //    // Assert
-        //    Assert.Single(result);
-        //    Assert.Equal("36", result[0]);
-        //}
-
-
-
-        //[Fact]
-        //public void ParseKuyuGrubuAdi_ShouldReturnCorrectResult_ForComplexInput()
-        //{
-        //    // Arrange
-        //    string line = "ADANA-36/K1/S5";
-
-        //    // Act
-        //    string result = Program.ParseKuyuGrubuAdi(line);
-
-        //    // Assert
-        //    Assert.Equal("36", result);
-        //}
-
-
-
-        //[Fact]
-        //public void ParseKuyuGrubuAdi_ShouldReturnCorrectResult_ForEmptyWellboreComponents()
-        //{
-        //    // Arrange
-        //    string line = "ADANA-";
-
-        //    // Act
-        //    string result = Program.ParseKuyuGrubuAdi(line);
-
-        //    // Assert
-        //    Assert.Equal("", result);
-        //}
-
-        //[Fact]
-        //public void ParseWellboreComponents_ShouldReturnCorrectResult_ForEmptyWellboreComponents()
-        //{
-        //    // Arrange
-        //    string line = "ADANA-";
-
-        //    // Act
-        //    string[] result = Program.ParseWellboreComponents(line);
-
-        //    // Assert
-        //    Assert.Empty(result);
-        //}
     }
 }

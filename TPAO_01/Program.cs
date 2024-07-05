@@ -10,7 +10,7 @@ namespace tpao_project_01
 {
     public static class Program
     {
-         static void Main(string[] args)
+        static void Main(string[] args)
         {
             //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
@@ -92,11 +92,10 @@ namespace tpao_project_01
                 return err;
             }
 
-            else if (Regex.IsMatch(parts[0], @"^[a-zA-Z]+$"))
+            else if (Regex.IsMatch(parts[0], @"^[A-Z]+$"))
             {
                 return parts[0];
             }
-
             else
             {
                 Console.WriteLine("Error");
@@ -118,7 +117,7 @@ namespace tpao_project_01
                 Console.WriteLine(err);
                 return err;
             }
-            else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$"))
+            else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts[0], @"^[A-Z]+$"))
             {
                 string err = "Error";
                 Console.WriteLine(err);
@@ -242,7 +241,7 @@ namespace tpao_project_01
             }
         }
 
-       
+
         static void WriteToCsv(IEnumerable<string> dataList, string outputPath)
         {
             List<string> lines = new List<string> { };

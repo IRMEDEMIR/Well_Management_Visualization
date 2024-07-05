@@ -39,6 +39,46 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
 
         }
 
+        [Fact]
+        public void ParseWellboreComponents_ShouldReturnCorrectResult_ForComplexInput()
+        {
+            // Arrange
+            string line = "ADANA-36/K1/S11";
+            string line1 = "ADANA-36/KA/S11";
+            string line2 = "ADANA-36/T/S11";
+
+
+            // Act
+            List<string> result = Program.WellboreOlustur(line);
+            List<string> result1 = Program.WellboreOlustur(line1);
+            List<string> result2 = Program.WellboreOlustur(line2);
+
+            // Assert
+            Assert.Equal(15, result.Count);
+
+            Assert.Equal("Error", result1[0]);
+
+            Assert.Equal("Error", result2[0]);
+
+            Assert.Equal("ADANA-36/K1/S11", result[0]);
+            Assert.Equal("ADANA-36/K1/S10", result[1]);
+            Assert.Equal("ADANA-36/K1/S9", result[2]);
+            Assert.Equal("ADANA-36/K1/S8", result[3]);
+            Assert.Equal("ADANA-36/K1/S7", result[4]);
+            Assert.Equal("ADANA-36/K1/S6", result[5]);
+            Assert.Equal("ADANA-36/K1/S5", result[6]);
+            Assert.Equal("ADANA-36/K1/S4", result[7]);
+            Assert.Equal("ADANA-36/K1/S3", result[8]);
+            Assert.Equal("ADANA-36/K1/S2", result[9]);
+            Assert.Equal("ADANA-36/K1/S1", result[10]);
+            Assert.Equal("ADANA-36/K1/S", result[11]);
+            Assert.Equal("ADANA-36/K1", result[12]);
+            Assert.Equal("ADANA-36/K", result[13]);
+            Assert.Equal("ADANA-36", result[14]);
+
+        }
+
+
         //[Fact]
         ////public void ParseWellboreComponents_ShouldReturnCorrectResult_ForSimpleInput()
         //{
@@ -66,22 +106,6 @@ namespace tpao_project_01 // Test sýnýfýnýn namespace'i
 
         //    // Assert
         //    Assert.Equal("36", result);
-        //}
-
-        //[Fact]
-        //public void ParseWellboreComponents_ShouldReturnCorrectResult_ForComplexInput()
-        //{
-        //    // Arrange
-        //    string line = "ADANA-36/K1/S5";
-
-        //    // Act
-        //    string[] result = Program.ParseWellboreComponents(line);
-
-        //    // Assert
-        //    Assert.Equal(3, result.Length);
-        //    Assert.Equal("36", result[0]);
-        //    Assert.Equal("K1", result[1]);
-        //    Assert.Equal("S5", result[2]);
         //}
 
 

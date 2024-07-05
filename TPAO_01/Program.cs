@@ -10,6 +10,7 @@ namespace tpao_project_01
 {
     public static class Program
     {
+
         static void Main(string[] args)
         {
             //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
@@ -60,7 +61,7 @@ namespace tpao_project_01
                     }
 
                     //wellboreOluştur fonksiyonunu çağır ve liste olarak al
-                    List<string> wellboreListesi = WellborelarıOlustur(line);
+                    List<string> wellboreListesi = WellboreOlustur(line);
 
                     //wellboreları dictionary ye ekle 
                     foreach (string wellbore in wellboreListesi)
@@ -92,7 +93,7 @@ namespace tpao_project_01
                 return err;
             }
 
-            else if (Regex.IsMatch(parts[0], @"^[A-Z]+$"))
+            else if (Regex.IsMatch(parts[0], @"^[A-Z ]+$"))
             {
                 return parts[0];
             }
@@ -117,7 +118,7 @@ namespace tpao_project_01
                 Console.WriteLine(err);
                 return err;
             }
-            else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts[0], @"^[A-Z]+$"))
+            else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts[0], @"^[A-Z ]+$"))
             {
                 string err = "Error";
                 Console.WriteLine(err);
@@ -165,7 +166,7 @@ namespace tpao_project_01
             return OlusturulanKuyular;
         }
 
-        public static List<string> WellborelarıOlustur(string line)
+        public static List<string> WellboreOlustur(string line)
         {
             string WellBoreAdi;
 
@@ -174,39 +175,70 @@ namespace tpao_project_01
             WellBoreAdi = line;  //önce tamamını ekledi ADANA-36/K1/R/S2
             OlusturulanWellborelar.Add(line);
 
-            string[] parts = line.Split('/'); //slashlara göre parçaladı
+            string[] parts = line.Split('-');
+            string kuyuGrubuveKuyu = parts[1]; // 36/K1/S
+            string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+            string kuyuGrubuEntry = parts[0] + "-" + wellboreComponents[0];
 
-            int k = parts.Length - 1;
-            for (int j = k; j > 0; j--)  //son elemandan ilk elemana kadar   // [ADANA-36] [K1] [R] [S2] 
+            if (parts.Length > 2)
             {
-                char wellType = parts[j][0];  //S
-                if (parts[j].Length > 1) //S1
+                OlusturulanWellborelar.Clear();
+                OlusturulanWellborelar.Add("Error");
+                return OlusturulanWellborelar;
+            }
+            else if (!Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts[0], @"^[A-Z ]+$"))
+            {
+                OlusturulanWellborelar.Clear();
+                OlusturulanWellborelar.Add("Error");
+                return OlusturulanWellborelar;
+            }
+            else
+            {
+
+                string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
+                if (slashParts.Length > 1 && !Regex.IsMatch(slashParts[1], @"^[KSRM]\d*$"))
                 {
-                    int kValue;
-                    if (int.TryParse(parts[j].Substring(1), out kValue))  //1
+                    Console.WriteLine("Error");
+                    OlusturulanWellborelar.Clear();
+                    OlusturulanWellborelar.Add("Error");
+                    return OlusturulanWellborelar;
+                }
+
+                OlusturulanWellborelar.Clear();
+
+                int k = slashParts.Length - 1;
+                for (int j = k; j > 0; j--)  //son elemandan ilk elemana kadar   // [ADANA-36] [K1] [R] [S2] 
+                {
+                    char wellType = slashParts[j][0];  //S
+                    if (slashParts[j].Length > 1) //S1
                     {
-                        string öncesi = string.Join("/", parts, 0, j); //ADANA-36/K1/R
-                        for (int i = kValue; i > 0; i--)
+                        int kValue;
+                        if (int.TryParse(slashParts[j].Substring(1), out kValue))  //1
                         {
-                            WellBoreAdi = öncesi + "/" + wellType + i;  //öncesi + /S2 ,  öncesi + /S1  
+                            string öncesi = string.Join("/", slashParts, 0, j); //ADANA-36/K1/R
+                            for (int i = kValue; i > 0; i--)
+                            {
+                                WellBoreAdi = öncesi + "/" + wellType + i;  //öncesi + /S2 ,  öncesi + /S1  
+                                OlusturulanWellborelar.Add(WellBoreAdi);
+                            }
+                            WellBoreAdi = öncesi + "/" + wellType; //öncesi + S
                             OlusturulanWellborelar.Add(WellBoreAdi);
                         }
-                        WellBoreAdi = öncesi + "/" + wellType; //öncesi + S
+                    }
+                    else
+                    {
+                        string öncesi = string.Join("/", slashParts, 0, j); //ADANA-36/K1/R
+                        WellBoreAdi = öncesi + "/" + wellType;
                         OlusturulanWellborelar.Add(WellBoreAdi);
                     }
                 }
-                else
-                {
-                    string öncesi = string.Join("/", parts, 0, j); //ADANA-36/K1/R
-                    WellBoreAdi = öncesi + "/" + wellType;
-                    OlusturulanWellborelar.Add(WellBoreAdi);
-                }
-            }
-            WellBoreAdi = parts[0];
-            OlusturulanWellborelar.Add(WellBoreAdi);
+                WellBoreAdi = slashParts[0];
+                OlusturulanWellborelar.Add(WellBoreAdi);
 
-            return OlusturulanWellborelar;
+                return OlusturulanWellborelar;
+            }
         }
+
 
         static void AddSaha(Dictionary<string, Saha> sahalar, string sahaAdi)
         {
@@ -250,6 +282,9 @@ namespace tpao_project_01
         }
     }
 }
+
+
+
 
 //public static string ParseSahaAdi(string line)
 //{

@@ -5,12 +5,12 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        private List<Saha> sahalar = new List<Saha>
+        private List<SahalarModel> sahalar = new List<SahalarModel>
         {
             // Örnek veriler
-            new Saha { Id = 1, Name = "Saha 1" },
-            new Saha { Id = 2, Name = "Saha 2" },
-            new Saha { Id = 3, Name = "Saha 3" },
+            new SahalarModel { Id = 1, Name = "Saha 1" },
+            new SahalarModel { Id = 2, Name = "Saha 2" },
+            new SahalarModel { Id = 3, Name = "Saha 3" },
             // Daha fazla örnek veri ekleyin...
         };
 

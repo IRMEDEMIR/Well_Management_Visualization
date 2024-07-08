@@ -1,6 +1,6 @@
 ﻿namespace ParsingProjectMVC.Models
 {
-    public class Saha
+    public class KuyuGruplariModel
     {
         public int Id { get; set; }
         public string Name { get; set; }

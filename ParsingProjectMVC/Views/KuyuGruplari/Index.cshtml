@@ -3,7 +3,35 @@
 *@
 @{
 }
+
 <div class="text-center">
-    <h1 class="display-4">kuyugrupları</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Kuyu Grupları</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var kuyu in Model)
+            {
+                <tr>
+                    <td>@kuyu.Id</td>
+                    <td>@kuyu.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
+
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
+        {
+            <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
+                <a class="page-link" href="/Kuyugrupları/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

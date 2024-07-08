@@ -2,7 +2,7 @@
 
 namespace ParsingProjectMVC.Controllers
 {
-    public class KuyuGruplari : Controller
+    public class KuyularController : Controller
     {
         public IActionResult Index()
         {

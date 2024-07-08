@@ -2,7 +2,7 @@
 
 namespace ParsingProjectMVC.Controllers
 {
-    public class Wellborelar : Controller
+    public class WellborelarController : Controller
     {
         public IActionResult Index()
         {

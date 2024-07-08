@@ -2,7 +2,7 @@
 
 namespace ParsingProjectMVC.Controllers
 {
-    public class Sahalar : Controller
+    public class SahalarController : Controller
     {
         public IActionResult Index()
         {

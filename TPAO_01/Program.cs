@@ -1,150 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TPAO_01;
-// ADDİFNOTEXİST eklenecek
+
 namespace tpao_project_01
 {
-    class Program
+    public static class Program
     {
+
         static void Main(string[] args)
         {
-            //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Random_kuyu_adlari.csv";
-            //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\";
+            //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\";
 
             string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
-           
+            //string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
+
+            string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
 
             Dictionary<string, Saha> sahalar = new Dictionary<string, Saha>();
             Dictionary<string, Kuyu_Grubu> kuyuGruplari = new Dictionary<string, Kuyu_Grubu>();
             Dictionary<string, Kuyu> kuyular = new Dictionary<string, Kuyu>();
             Dictionary<string, Wellbore> wellborelar = new Dictionary<string, Wellbore>();
 
-
             try
             {
+                //satır satır oku
                 string[] lines = File.ReadAllLines(filePath);
 
+                //her satır için işlem yap
                 foreach (string line in lines)
                 {
-                    string[] parts = line.Split('-'); // ADANA-36/K1/S/R
-                    string sahaAdi = parts[0]; // ADANA
-                    string kuyuGrubuveKuyu = parts[1]; // 36/K1/S/R
 
-                    string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // [36][K1][S][R]
+                    //saha oluturma fonksiyonunu çağır
+                    string sahaAdi = SahaOlustur(line);  // ADANA
 
-                    string kuyuGrubuAdi = wellboreComponents[0]; // 36
-                    string kuyuGrubuEntry = sahaAdi + '-' + kuyuGrubuAdi; // ADANA-26
+                    //sahaları dictionary ye ekle
+                    AddSaha(sahalar, sahaAdi);
 
-                  
+                    //kuyu grubu oluşturma fonksiyonunu çağır
+                    string kuyuGrubuAdi = KuyuGrubuOlustur(line);  // ADANA-36
 
-                    Saha saha;
-                    if (!sahalar.TryGetValue(sahaAdi, out saha))
+                    //kuyugruplarını dictionary ye ekle
+                    AddKuyuGrubu(kuyuGruplari, kuyuGrubuAdi);
+
+                    //kuyuOluştur fonksiyonunu çağır ve liste olarak al
+                    List<string> KuyuListesi = KuyuOlustur(line);
+
+                    //kuyuları dictionary ye ekle
+                    foreach (string kuyu in KuyuListesi)
                     {
-                        saha = new Saha(sahaAdi);
-                        sahalar[saha.SahaAdi] = saha;
+                        AddKuyu(kuyular, kuyu);
                     }
 
-                    Kuyu_Grubu kuyuGrubu;
-                    if (!kuyuGruplari.TryGetValue(kuyuGrubuEntry, out kuyuGrubu))
+                    //wellboreOluştur fonksiyonunu çağır ve liste olarak al
+                    List<string> wellboreListesi = WellboreOlustur(line);
+
+                    //wellboreları dictionary ye ekle 
+                    foreach (string wellbore in wellboreListesi)
                     {
-                        kuyuGrubu = new Kuyu_Grubu(kuyuGrubuEntry);
-                        kuyuGruplari[kuyuGrubu.KuyuGrubuAdi] = kuyuGrubu;
+                        AddWellbore(wellborelar, wellbore);
                     }
 
-                    Kuyu kuyu;
-                    if (!kuyular.TryGetValue(kuyuGrubuEntry, out kuyu))
-                    {
-                        kuyu = new Kuyu(kuyuGrubuEntry);
-                        kuyular[kuyu.KuyuAdi] = kuyu;
-                    }
-
-                    // kuyular dictionary'ine kuyu bilgileri eklemme
-                    for (int i = 1; i < wellboreComponents.Length; i++)
-                    {
-                        if (wellboreComponents[i].StartsWith("K"))
-                        {
-                            // Önceki /K değerlerini oluştur
-                            int kValue;
-                            if (wellboreComponents[i].Length == 1)
-                            {
-                                string previous = $"{kuyuGrubuEntry}/K";
-                                kuyular[previous] = new Kuyu(previous);
-                            }
-                            if (int.TryParse(wellboreComponents[i].Substring(1), out kValue))
-                            {
-                                for (int j = kValue; j >= 1; j--)
-                                {
-                                    string previousK = $"{kuyuGrubuEntry}/K{j}";
-                                    if (!kuyular.ContainsKey(previousK))
-                                    {
-                                        kuyular[previousK] = new Kuyu(previousK);
-                                    }
-                                }
-                                string previousKK = $"{kuyuGrubuEntry}/K";
-                                if (!kuyular.ContainsKey(previousKK))
-                                {
-                                    kuyular[previousKK] = new Kuyu(previousKK);
-                                }
-                            }
-                        }
-                    }
-
-                    // Wellborelar wellbore = new Wellborelar(line);
-
-                    // WellBorelarList içinde wellbore varlığını kontrol et ve ekleyin
-                    if (!wellborelar.ContainsKey(line))
-                    {
-                        Wellbore wellbore = new Wellbore(line);
-                        wellborelar[line] = wellbore;
-
-                        string[] wellborePartsSlashSeparated = line.Split('/'); // slashlara göre parçaladı
-
-                        int k = wellborePartsSlashSeparated.Length - 1;
-                        for (int j = k; j > 0; j--) // son elemandan ilk elemana kadar
-                        {
-                            char wellType = wellborePartsSlashSeparated[j][0]; // S gibi
-                            if (wellborePartsSlashSeparated[j].Length > 1) // S1 gibi
-                            {
-                                int sValue;
-                                if (int.TryParse(wellborePartsSlashSeparated[j].Substring(1), out sValue)) // S'in yanındaki 1 i aldı //1
-                                {
-                                    string previous = string.Join("/", wellborePartsSlashSeparated, 0, j); //ADANA-36/K1/R//Birleştirme
-                                    for (int i = sValue; i > 0; i--)
-                                    {
-                                        string wellboreName = previous + "/" + wellType + i; //öncesi + /S2 ,  öncesi + /S1  
-                                        if (!wellborelar.ContainsKey(wellboreName))
-                                        {
-                                            wellborelar[wellboreName] = new Wellbore(wellboreName);
-                                        }
-                                    }
-                                    string wellboreNameWithoutNumber = previous + "/" + wellType; // ADANA-36/K1/S
-                                    if (!wellborelar.ContainsKey(wellboreNameWithoutNumber))
-                                    {
-                                        wellborelar[wellboreNameWithoutNumber] = new Wellbore(wellboreNameWithoutNumber);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                string previous = string.Join("/", wellborePartsSlashSeparated, 0, j); //ADANA-36/K1/R
-                                string wellboreNameWithoutNumber = previous + "/" + wellType;
-                                if (!wellborelar.ContainsKey(wellboreNameWithoutNumber))
-                                {
-                                    wellborelar[wellboreNameWithoutNumber] = new Wellbore(wellboreNameWithoutNumber);
-                                }
-                            }
-                        }
-                        wellbore.WellboreAdi = wellborePartsSlashSeparated[0];
-                        if (!wellborelar.ContainsKey(wellbore.WellboreAdi))
-                        {
-                            wellborelar[wellbore.WellboreAdi] = wellbore; 
-                        }
-                    }
-                    
                 }
 
                 WriteToCsv(sahalar.Keys, Path.Combine(outputDir, "Sahalar.csv"));
@@ -152,36 +76,315 @@ namespace tpao_project_01
                 WriteToCsv(kuyular.Keys, Path.Combine(outputDir, "Kuyular.csv"));
                 WriteToCsv(wellborelar.Keys, Path.Combine(outputDir, "Wellborelar.csv"));
 
-
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Hata: {ex.Message}");
             }
-
-
         }
-
-        static void AddIfNotExists<T>(List<T> list, T item)
+        public static string SahaOlustur(string line)
         {
-            if (!list.Any(x => x.Equals(item)))
+
+            string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
+
+
+            for (int i = 2; i < slashParts.Length; i++)
             {
-                list.Add(item);
+                if (slashParts[i].Contains("K"))
+                {
+                    Console.WriteLine("Error");
+                    string err = "Error";
+                    return err;
+                }
+            }
+
+            for (int i = 1; i < slashParts.Length; i++)
+            {
+                if (slashParts.Length > 1 && Regex.IsMatch(slashParts[i], @"^[KSRM]\d*$") == false)
+                {
+                    Console.WriteLine("Error");
+                    string err = "Error";
+                    return err;
+                }
+            }
+
+
+           if (!Regex.IsMatch(line, @"-[0-9]+"))
+             {
+                Console.WriteLine("Error");
+                string err = "Error";
+                return err;
+            }
+            else
+            {
+                string[] parts = line.Split('-');
+
+                if (parts.Length > 2)
+                {
+                    Console.WriteLine("Error");
+                    string err = "Error";
+                    return err;
+                }
+                else if (Regex.IsMatch(parts[0], @"^[A-Z ]+$"))
+                {
+                    return parts[0];
+                }
+                else
+                {
+                    Console.WriteLine("Error");
+                    string err = "Error";
+                    return err;
+                }
             }
         }
 
-       
+        public static string KuyuGrubuOlustur(string line)
+        {
+            string[] parts = line.Split('-');
+            string kuyuGrubuveKuyu = parts[1]; // 36/K1/S
+            string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+            string kuyuGrubuEntry = parts[0] + "-" + wellboreComponents[0];
+
+
+            string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
+
+
+            for (int i = 2; i < slashParts.Length; i++)
+            {
+                if (slashParts[i].Contains("K"))
+                {
+                    Console.WriteLine("Error");
+                    string err = "Error";
+                    return err;
+                }
+            }
+
+            for (int i = 1; i < slashParts.Length; i++)
+            {
+                if (slashParts.Length > 1 && Regex.IsMatch(slashParts[i], @"^[KSRM]\d*$") == false)
+                {
+                    Console.WriteLine("Error");
+                    string err = "Error";
+                    return err;
+                }
+            }
+           
+            if (parts.Length > 2)
+            {
+                string err = "Error";
+                Console.WriteLine(err);
+                return err;
+            }
+            else if (wellboreComponents.Length < 1 || !Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts[0], @"^[A-Z ]+$"))
+            {
+                string err = "Error";
+                Console.WriteLine(err);
+                return err;
+            }
+            else
+                return kuyuGrubuEntry;
+        }
+
+        public static List<string> KuyuOlustur(string line)
+        {
+            string[] parts = line.Split('/');
+            string KuyuAdi;
+            List<string> OlusturulanKuyular = new List<string>();
+
+            string[] parts1 = line.Split('-');
+            if (parts1.Length > 2) // '-' kontrolü
+            {
+                return new List<string>() { "Error" };
+            }
+
+            string kuyuGrubuveKuyu = parts1[1]; // 36/K1/S
+            string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+            string kuyuGrubuEntry = parts1[0] + "-" + wellboreComponents[0];
+
+            if (!Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts1[0], @"^[A-Z ]+$"))
+            {
+                return new List<string>() { "Error" };
+            }
+
+            string[] slashParts = line.Split('/'); // Slashlara göre parçaladı // ADANA-36 K1/R1
+
+
+            for (int i = 1; i < slashParts.Length; i++)
+            {
+                if (slashParts.Length > 1 && Regex.IsMatch(slashParts[i], @"^[KSRM]\d*$") == false)
+                {
+                    return new List<string>() { "Error" };
+                }
+            }
+
+            for (int i = 2; i < slashParts.Length; i++)
+            {
+                if (slashParts[i].Contains("K"))
+                {
+                    return new List<string>() { "Error" };
+                }
+            }
+
+            if (parts.Length > 1 && parts[1].Contains("K"))
+            {
+                KuyuAdi = parts[0];  // ADANA-36
+                OlusturulanKuyular.Add(KuyuAdi);
+
+                if (parts[1].Length == 1)
+                {
+                    KuyuAdi = parts[0] + "/K";  // ADANA-36/K
+                    OlusturulanKuyular.Add(KuyuAdi);
+                }
+                else
+                {
+                    // "K" harfinden sonraki sayıyı al ve geriye doğru kuyu adlarını oluştur
+                    int kValue;
+                    if (int.TryParse(parts[1].Substring(1), out kValue))
+                    {
+                        KuyuAdi = parts[0] + "/" + parts[1];  // ADANA-36/K1
+                        OlusturulanKuyular.Add(KuyuAdi);
+
+                        for (int i = kValue - 1; i > 0; i--)
+                        {
+                            KuyuAdi = parts[0] + "/K" + i;
+                            OlusturulanKuyular.Add(KuyuAdi);
+                        }
+                        KuyuAdi = parts[0] + "/K";  // ADANA-36/K
+                        OlusturulanKuyular.Add(KuyuAdi);
+                    }
+                    else
+                    {
+                        return new List<string>() { "Error" };
+                    }
+                }
+            }
+            else  // ADANA-36 veya ADANA-36/R/S falan
+            {
+                KuyuAdi = parts[0];
+                OlusturulanKuyular.Add(KuyuAdi);
+            }
+            return OlusturulanKuyular;
+        }
+
+        public static List<string> WellboreOlustur(string line)
+        {
+            string WellBoreAdi;
+
+            List<string> OlusturulanWellborelar = new List<string>();
+
+            string[] parts = line.Split('-');
+            string kuyuGrubuveKuyu = parts[1]; // 36/K1/S
+            string[] wellboreComponents = kuyuGrubuveKuyu.Split('/'); // 36/K1/S
+            string kuyuGrubuEntry = parts[0] + "-" + wellboreComponents[0];
+
+            if (parts.Length > 2)// '-' Kontorlü
+            {
+                OlusturulanWellborelar.Clear();
+                OlusturulanWellborelar.Add("Error");
+                return OlusturulanWellborelar;
+            }
+            else if (!Regex.IsMatch(wellboreComponents[0], @"^\d+$") || !Regex.IsMatch(parts[0], @"^[A-Z ]+$"))
+            {
+                OlusturulanWellborelar.Clear();
+                OlusturulanWellborelar.Add("Error");
+                return OlusturulanWellborelar;
+            }
+            else
+            {
+                
+                string[] slashParts = line.Split('/'); //slashlara göre parçaladı //ADANA -36      K1/R1
+ 
+               for (int i = 2; i < slashParts.Length; i++)
+                {
+                    if (slashParts[i].Contains("K"))
+                    {
+                       OlusturulanWellborelar.Clear();
+                        OlusturulanWellborelar.Add("Error");
+                        return OlusturulanWellborelar;
+                    }
+                }
+
+                for (int i = 1; i < slashParts.Length; i++)
+                {
+                    if (slashParts.Length > 1 && Regex.IsMatch(slashParts[i], @"^[KSRM]\d*$") == false)
+                    {
+                        OlusturulanWellborelar.Clear();
+                        OlusturulanWellborelar.Add("Error");
+                        return OlusturulanWellborelar;
+                    }
+                }
+
+                int k = slashParts.Length - 1;
+                for (int j = k; j > 0; j--)  //son elemandan ilk elemana kadar   // [ADANA-36] [K1] [R] [S2] 
+                {
+                    char wellType = slashParts[j][0];  //S
+                    if (slashParts[j].Length > 1) //S1
+                    {
+                        int kValue;
+                        if (int.TryParse(slashParts[j].Substring(1), out kValue))  //1
+                        {
+                            string öncesi = string.Join("/", slashParts, 0, j); //ADANA-36/K1/R
+                            for (int i = kValue; i > 0; i--)
+                            {
+                                WellBoreAdi = öncesi + "/" + wellType + i;  //öncesi + /S2 ,  öncesi + /S1  
+                                OlusturulanWellborelar.Add(WellBoreAdi);
+                            }
+                            WellBoreAdi = öncesi + "/" + wellType; //öncesi + S
+                            OlusturulanWellborelar.Add(WellBoreAdi);
+                        }
+                    }
+                    else
+                    {
+                        string öncesi = string.Join("/", slashParts, 0, j); //ADANA-36/K1/R
+                        WellBoreAdi = öncesi + "/" + wellType;
+                        OlusturulanWellborelar.Add(WellBoreAdi);
+                    }
+                }
+                WellBoreAdi = slashParts[0];
+                OlusturulanWellborelar.Add(WellBoreAdi);
+
+                return OlusturulanWellborelar;
+            }
+        }
+
+        static void AddSaha(Dictionary<string, Saha> sahalar, string sahaAdi)
+        {
+
+            if (!sahalar.ContainsKey(sahaAdi))
+            {
+                sahalar[sahaAdi] = new Saha(sahaAdi);
+            }
+        }
+
+        static void AddKuyuGrubu(Dictionary<string, Kuyu_Grubu> kuyuGruplari, string kuyuGrubuEntry)
+        {
+            if (!kuyuGruplari.ContainsKey(kuyuGrubuEntry))
+            {
+                kuyuGruplari[kuyuGrubuEntry] = new Kuyu_Grubu(kuyuGrubuEntry);
+            }
+        }
+
+        static void AddKuyu(Dictionary<string, Kuyu> kuyular, string kuyuEntry)
+        {
+            if (!kuyular.ContainsKey(kuyuEntry))
+            {
+                kuyular[kuyuEntry] = new Kuyu(kuyuEntry);
+            }
+        }
+
+        static void AddWellbore(Dictionary<string, Wellbore> wellborelar, string line)
+        {
+            if (!wellborelar.ContainsKey(line))
+            {
+                wellborelar[line] = new Wellbore(line);
+            }
+        }
+
         static void WriteToCsv(IEnumerable<string> dataList, string outputPath)
         {
-            List<string> lines = new List<string> {  };
+            List<string> lines = new List<string> { };
             lines.AddRange(dataList);
             File.WriteAllLines(outputPath, lines);
         }
     }
-
-
-
-
-    }   
-
+}

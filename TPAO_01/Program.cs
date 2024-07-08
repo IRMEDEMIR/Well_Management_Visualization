@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TPAO_01;
-
+// ADDİFNOTEXİST eklenecek
 namespace tpao_project_01
 {
     class Program
@@ -141,7 +141,7 @@ namespace tpao_project_01
                         wellbore.WellboreAdi = wellborePartsSlashSeparated[0];
                         if (!wellborelar.ContainsKey(wellbore.WellboreAdi))
                         {
-                            wellborelar[wellbore.WellboreAdi] = wellbore;
+                            wellborelar[wellbore.WellboreAdi] = wellbore; 
                         }
                     }
                     

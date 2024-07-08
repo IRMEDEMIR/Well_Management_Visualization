@@ -13,7 +13,7 @@ namespace ParsingProjectMVC.Controllers
             new SahalarModel { Id = 3, Name = "Saha 3" },
             // Daha fazla örnek veri ekleyin...
         };
-
+        [HttpGet]
         public IActionResult Index(int pageNumber = 1, int pageSize = 10)
         {
             var pagedSahalar = sahalar
@@ -29,6 +29,18 @@ namespace ParsingProjectMVC.Controllers
 
             return View(pagedSahalar);
         }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var saha = sahalar.FirstOrDefault(s => s.Id == id);
+            if (saha != null)
+            {
+                sahalar.Remove(saha);
+            }
+            return View("Index");
+        }
+
     }
 }
 

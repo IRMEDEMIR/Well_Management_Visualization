@@ -13,8 +13,8 @@ namespace tpao_project_01
 
         static void Main(string[] args)
         {
-            string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\";
+            //string filePath = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\";
 
             string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";

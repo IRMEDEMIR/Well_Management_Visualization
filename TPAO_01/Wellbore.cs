@@ -35,4 +35,4 @@ namespace TPAO_01
         // Public property for Kuyular
         public Kuyu Kuyu { get; set; }
     }
-}
+}   

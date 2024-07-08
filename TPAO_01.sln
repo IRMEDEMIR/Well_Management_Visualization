@@ -5,7 +5,9 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TPAO_01", "TPAO_01\TPAO_01.csproj", "{759C1A2A-DC45-4047-BEB5-CBA6A664D2F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParsingTest", "ParsingTest\ParsingTest.csproj", "{8BD2B0C2-F931-4695-8022-1FE77230C755}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParsingTest", "ParsingTest\ParsingTest.csproj", "{8BD2B0C2-F931-4695-8022-1FE77230C755}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParsingProjectMVC", "..\ParsingProjectMVC\ParsingProjectMVC.csproj", "{77E1E5EC-F078-43CB-A19D-B369CD2DA162}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{8BD2B0C2-F931-4695-8022-1FE77230C755}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BD2B0C2-F931-4695-8022-1FE77230C755}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BD2B0C2-F931-4695-8022-1FE77230C755}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77E1E5EC-F078-43CB-A19D-B369CD2DA162}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77E1E5EC-F078-43CB-A19D-B369CD2DA162}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77E1E5EC-F078-43CB-A19D-B369CD2DA162}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77E1E5EC-F078-43CB-A19D-B369CD2DA162}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,12 +5,12 @@ namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
-        private List<WellborelarModel> wellborelar = new List<WellborelarModel>
+        private List<WellboreModel> wellborelar = new List<WellboreModel>
         {
             // Örnek veriler
-            new WellborelarModel { Id = 1, Name = "Wellbore 1" },
-            new WellborelarModel { Id = 2, Name = "Wellbore 2" },
-            new WellborelarModel { Id = 3, Name = "Wellbore 3" },
+            //new WellborelarModel { Id = 1, Name = "Wellbore 1" },
+            //new WellborelarModel { Id = 2, Name = "Wellbore 2" },
+            //new WellborelarModel { Id = 3, Name = "Wellbore 3" },
             // Daha fazla örnek veri ekleyin...
         };
 

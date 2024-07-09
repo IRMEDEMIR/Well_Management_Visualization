@@ -5,12 +5,12 @@ namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
-        private List<KuyularModel> kuyular = new List<KuyularModel>
+        private List<KuyuModel> kuyular = new List<KuyuModel>
         {
             // Örnek veriler
-            new KuyularModel { Id = 1, Name = "Kuyu 1" },
-            new KuyularModel { Id = 2, Name = "Kuyu 2" },
-            new KuyularModel { Id = 3, Name = "Kuyu 3" },
+            //new KuyularModel { Id = 1, Name = "Kuyu 1" },
+            //new KuyularModel { Id = 2, Name = "Kuyu 2" },
+            //new KuyularModel { Id = 3, Name = "Kuyu 3" },
             // Daha fazla örnek veri ekleyin...
         };
 

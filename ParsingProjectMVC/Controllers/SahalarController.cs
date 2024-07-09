@@ -10,8 +10,8 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Sahalar.csv";
         private List<SahaModel> sahalar = new List<SahaModel>();
 
         public SahalarController()

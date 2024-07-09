@@ -8,8 +8,8 @@ namespace ParsingProjectMVC.Controllers
     public class WellborelarController : Controller
     {
 
-        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Wellborelar.csv";
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        //private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Wellborelar.csv";
+        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
 
         private List<WellboreModel> wellborelar = new List<WellboreModel>();
         

@@ -10,8 +10,13 @@ namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
+<<<<<<< HEAD
         private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+=======
+        //private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+>>>>>>> 6e2083a9777222cb8034b9942a89379f351415bf
         private List<KuyuModel> kuyular = new List<KuyuModel>();
 
         public KuyularController()

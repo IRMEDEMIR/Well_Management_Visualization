@@ -10,8 +10,8 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Sahalar.csv";
         private List<SahaModel> sahalar = new List<SahaModel>();
 
         public SahalarController()
@@ -26,7 +26,16 @@ namespace ParsingProjectMVC.Controllers
                 using (var reader = new StreamReader(_filePath))
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    sahalar = csv.GetRecords<SahaModel>().ToList();
+                    var records = csv.GetRecords<dynamic>().ToList();
+                    int idCounter = 1;
+                    foreach (var record in records)
+                    {
+                        sahalar.Add(new SahaModel
+                        {
+                            Id = idCounter++,
+                            SahaAdi = record.SahaAdi
+                        });
+                    };
                 }
             }
             catch (Exception ex)

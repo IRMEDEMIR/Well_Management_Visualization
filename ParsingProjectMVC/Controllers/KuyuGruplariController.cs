@@ -22,7 +22,17 @@ namespace ParsingProjectMVC.Controllers
                 using (var reader = new StreamReader(_filePath))
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                   kuyuGruplari = csv.GetRecords<KuyuGrubuModel>().ToList();
+                    var records = csv.GetRecords<dynamic>().ToList();
+                    int idCounter = 1;
+                    foreach (var record in records)
+                    {
+                        kuyuGruplari.Add(new KuyuGrubuModel
+                        {
+                            Id = idCounter++,
+                            KuyuGrubuAdi = record.KuyuGrubuAdi,
+                            SahaAdi = null //burayı kontrol et
+                        });
+                    }
                 }
             }
             catch(Exception ex)

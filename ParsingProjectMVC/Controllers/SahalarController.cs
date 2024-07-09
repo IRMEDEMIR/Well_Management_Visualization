@@ -41,6 +41,51 @@ namespace ParsingProjectMVC.Controllers
             return View("Index");
         }
 
+        // GET: Sahalar/Edit/5
+        [HttpGet]
+        public IActionResult Update(int id)
+        {
+            var saha = sahalar.FirstOrDefault(s => s.Id == id);
+            if (saha == null)
+            {
+                return NotFound();
+            }
+            return View(saha);
+        }
+
+        // POST: Sahalar/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Update(int id, [Bind("Id,Name")] SahalarModel saha)
+        {
+            if (id != saha.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var target = sahalar.FirstOrDefault(s => s.Id == saha.Id);
+                    if (target != null)
+                    {
+                        target.Name = saha.Name;
+                        // Burada veritabanı güncelleme işlemi gerçekleşecek
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Hata yönetimi
+                    ModelState.AddModelError("", "Güncelleme sırasında bir hata oluştu: " + ex.Message);
+                    return View(saha);
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(saha);
+        }
+
+
     }
 }
 

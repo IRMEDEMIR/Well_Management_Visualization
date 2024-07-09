@@ -5,15 +5,18 @@
 }
 <div class="text-center">
     <h1 class="display-4">Sahalar</h1>
+
+    <div class="text-right mb-3">
+        <a asp-action="Create" class="btn btn-success">Add New Saha</a>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th></th>
+                <th>Actions</th>
             </tr>
-            <input type="type" name="name" value="" />
-
         </thead>
         <tbody>
             @foreach (var saha in Model)
@@ -22,6 +25,7 @@
                     <td>@saha.Id</td>
                     <td>@saha.Name</td>
                     <td>
+                        <a asp-action="Update" asp-route-id="@saha.Id" class="btn btn-primary btn-sm">Update</a>
                         <form asp-action="Delete" asp-controller="Sahalar" method="post" style="display:inline;">
                             <input type="hidden" name="id" value="@saha.Id" />
                             <button type="submit" class="btn btn-danger btn-sm">X</button>

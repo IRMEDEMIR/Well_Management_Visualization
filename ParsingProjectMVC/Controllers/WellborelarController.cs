@@ -7,7 +7,10 @@ namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+
+        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Wellborelar.csv";
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+
         private List<WellboreModel> wellborelar = new List<WellboreModel>();
         
         public WellborelarController()
@@ -45,7 +48,7 @@ namespace ParsingProjectMVC.Controllers
             }
         }
 
-        public IActionResult Index(int pageNumber = 1, int pageSize = 10)
+        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
         {
             var pagedWellborelar = wellborelar
                 .Skip((pageNumber - 1) * pageSize)

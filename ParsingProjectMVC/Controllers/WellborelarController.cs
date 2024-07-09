@@ -1,18 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CsvHelper;
+using Microsoft.AspNetCore.Mvc;
 using ParsingProjectMVC.Models;
+using System.Globalization;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
-        private List<WellboreModel> wellborelar = new List<WellboreModel>
+        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        private List<WellboreModel> wellborelar = new List<WellboreModel>();
+        
+        public WellborelarController()
         {
-            // Örnek veriler
-            //new WellborelarModel { Id = 1, Name = "Wellbore 1" },
-            //new WellborelarModel { Id = 2, Name = "Wellbore 2" },
-            //new WellborelarModel { Id = 3, Name = "Wellbore 3" },
-            // Daha fazla örnek veri ekleyin...
-        };
+            LoadWellborelarFromCsv();
+        }
+        private void LoadWellborelarFromCsv()
+        {
+            try
+            {
+                using (var reader = new StreamReader(_filePath))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var records = csv.GetRecords<dynamic>().ToList();
+                    int idCounter = 1;
+                    foreach (var record in records)
+                    {
+                        wellborelar.Add(new WellboreModel
+                        {
+                            Id = idCounter++,
+                            WellboreAdi = record.WellboreAdi,
+                            KuyuGrubuAdi = null,
+                            KuyuAdi = null,
+                            SahaAdi = null,
+                            Derinlik = null
+                        });
+
+                    }
+                }
+            }
+            catch(Exception ex) 
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
+            }
+        }
 
         public IActionResult Index(int pageNumber = 1, int pageSize = 10)
         {

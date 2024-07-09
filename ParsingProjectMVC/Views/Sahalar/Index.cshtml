@@ -21,7 +21,7 @@
                     <td>@saha.SahaAdi</td>
                     <td>
                         <a asp-action="Update" asp-route-id="@saha.Id" class="btn btn-primary btn-sm">Update</a>
-                        <form asp-action="Delete" asp-controller="SahalarController" method="post" style="display:inline;">
+                        <form asp-action="Delete" asp-controller="Sahalar" method="post" style="display:inline;">
                             <input type="hidden" name="id" value="@saha.Id" />
                             <button type="submit" class="btn btn-danger btn-sm">X</button>
                         </form>

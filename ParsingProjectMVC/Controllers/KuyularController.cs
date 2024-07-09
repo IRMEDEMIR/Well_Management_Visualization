@@ -11,11 +11,10 @@ namespace ParsingProjectMVC.Controllers
     public class KuyularController : Controller
     {
         private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
-
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
         private List<KuyuModel> kuyular = new List<KuyuModel>();
 
-        public KuyularController() 
+        public KuyularController()
         {
             LoadKuyularFromCsv();
         }
@@ -49,6 +48,7 @@ namespace ParsingProjectMVC.Controllers
                 Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
             }
         }
+
         [HttpGet]
         public IActionResult Index(int pageNumber = 1, int pageSize = 50)
         {
@@ -64,6 +64,38 @@ namespace ParsingProjectMVC.Controllers
             ViewBag.TotalItems = totalItems;
 
             return View(pagedKuyular);
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var kuyuToDelete = kuyular.FirstOrDefault(k => k.Id == id);
+            if (kuyuToDelete != null)
+            {
+                kuyular.Remove(kuyuToDelete);
+                SaveKuyularToCsv();
+            }
+            return RedirectToAction("Index");
+        }
+
+        private void SaveKuyularToCsv()
+        {
+            try
+            {
+                using (var writer = new StreamWriter(_filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(kuyular.Select(k => new
+                    {
+                        k.KuyuAdi
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
+            }
         }
     }
 }

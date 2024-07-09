@@ -44,6 +44,35 @@ namespace ParsingProjectMVC.Controllers
             }
         }
 
+        private void SaveKuyuGruplariToCsv()
+        {
+            try
+            {
+                using (var writer = new StreamWriter(_filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(kuyuGruplari.Select(k => new { KuyuGrubuAdi = k.KuyuGrubuAdi }));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+            if (kuyuGrubu != null)
+            {
+                kuyuGruplari.Remove(kuyuGrubu);
+                SaveKuyuGruplariToCsv();
+            }
+            return RedirectToAction("Index");
+        }
+
         [HttpGet]
         public IActionResult Index(int pageNumber = 1, int pageSize = 50)
         {

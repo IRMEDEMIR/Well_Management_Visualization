@@ -10,7 +10,6 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv"; // CSV dosyasının yolunu buraya ekleyin
         private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Sahalar.csv";
         private List<SahaModel> sahalar = new List<SahaModel>();
 
@@ -35,13 +34,30 @@ namespace ParsingProjectMVC.Controllers
                             Id = idCounter++,
                             SahaAdi = record.SahaAdi
                         });
-                    };
+                    }
                 }
             }
             catch (Exception ex)
             {
                 // Hata yönetimi
                 Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
+            }
+        }
+
+        private void SaveSahalarToCsv()
+        {
+            try
+            {
+                using (var writer = new StreamWriter(_filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(sahalar.Select(s => new { SahaAdi = s.SahaAdi }));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
             }
         }
 
@@ -60,6 +76,18 @@ namespace ParsingProjectMVC.Controllers
             ViewBag.TotalItems = totalItems;
 
             return View(pagedSahalar);
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var saha = sahalar.FirstOrDefault(s => s.Id == id);
+            if (saha != null)
+            {
+                sahalar.Remove(saha);
+                SaveSahalarToCsv();
+            }
+            return RedirectToAction("Index");
         }
     }
 }

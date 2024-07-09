@@ -20,10 +20,15 @@ namespace tpao_project_01
             //ali nadir
             //string filePath = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
             //string outputDir = @"C:\Users\WİN10\Desktop\TPAO\Parsing_Project\TPAO_01\output\";
-            
+
+            //ali nadir
+            string filePath = @"C:\Users\Erdil\Desktop\TPAO_01\TPAO_01\Random_kuyu_adlari.csv";
+            string outputDir = @"C:\Users\Erdil\Desktop\TPAO_01\TPAO_01\output\";
+
+
             //irem
-            string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
-            string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
+            //string filePath = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";
+            //string outputDir = @"C:\Users\demir\OneDrive\Desktop\Parsing_Project\TPAO_01\output\";
 
             //Nevsan
             //string filePath = @"C:\Users\Asus\Desktop\TPAO\Parsing_Project\TPAO_01\Random_kuyu_adlari.csv";

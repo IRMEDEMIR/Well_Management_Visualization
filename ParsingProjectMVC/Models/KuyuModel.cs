@@ -1,12 +1,12 @@
 ﻿namespace ParsingProjectMVC.Models
 {
     public class KuyuModel
-    {
+    {/*
         //Variables
         private string _kuyuAdi;
         private double? _enlem;
         private double? _boylam;
-        private string? _id;
+        private static int _idCounter = 1;  //ID sayacı
 
         // Constructor
         public KuyuModel(string kuyuAdi)
@@ -14,21 +14,22 @@
             _kuyuAdi = kuyuAdi;
             _enlem = null;
             _boylam = null;
-            _id = null;
+            Id = _idCounter++;
         }
-        //Properties
-        public string KuyuAdi
+
+        public KuyuModel()
         {
-            get { return _kuyuAdi; }
-            set { _kuyuAdi = value; }
-        }
+            _kuyuAdi = null;
+        }*/
+        //Properties
+        public int Id { get; set; } 
+        public string KuyuAdi { get; set; }
 
         public double? Enlem { get; set; }
         public double? Boylam { get; set; }
 
-        public string? Id { get; set; }
-        public KuyuGrubuModel Kuyu_Grubu { get; set; }
-        public SahaModel Saha { get; set; }
+        public KuyuGrubuModel KuyuGrubuAdi { get; set; }
+        public SahaModel SahaAdi { get; set; }
 
     }
 }

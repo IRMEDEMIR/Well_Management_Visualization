@@ -1,16 +1,18 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿@model IEnumerable<ParsingProjectMVC.Models.KuyuGrubuModel>
 
 <div class="text-center">
     <h1 class="display-4">Kuyu Grupları</h1>
+
+    <div class="text-right mb-3">
+        <a asp-action="Create" class="btn btn-success">Add New Kuyu Grubu</a>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Name</th>
+                <th>Kuyu Grubu Adı</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -18,7 +20,14 @@
             {
                 <tr>
                     <td>@kuyuGrubu.Id</td>
-                    <td>@kuyuGrubu.Name</td>
+                    <td>@kuyuGrubu.KuyuGrubuAdi</td>
+                    <td>
+                        <a asp-action="Update" asp-route-id="@kuyuGrubu.Id" class="btn btn-primary btn-sm">Update</a>
+                        <form asp-action="Delete" asp-controller="KuyuGruplari" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@kuyuGrubu.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">X</button>
+                        </form>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -30,7 +39,7 @@
         @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
         {
             <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
-                <a class="page-link" href="/Kuyugrupları/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
+                <a class="page-link" href="/KuyuGruplari/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
             </li>
         }
     </ul>

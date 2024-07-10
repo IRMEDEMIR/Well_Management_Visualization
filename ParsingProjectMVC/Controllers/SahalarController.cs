@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ParsingProjectMVC.Controllers
 {
@@ -12,8 +13,8 @@ namespace ParsingProjectMVC.Controllers
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
-        //private readonly string _filePath = "C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\output\Sahalar.csv";
-        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
 
         private List<SahaModel> sahalar = new List<SahaModel>();
 
@@ -85,7 +86,9 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string sahaAdi)
         {
-            if (!string.IsNullOrEmpty(sahaAdi))
+            var regex = new Regex(@"^[A-Z\s]+$");
+
+            if (!string.IsNullOrEmpty(sahaAdi) && regex.IsMatch(sahaAdi))
             {
                 var newSaha = new SahaModel
                 {
@@ -94,6 +97,11 @@ namespace ParsingProjectMVC.Controllers
                 };
                 sahalar.Add(newSaha);
                 SaveSahalarToCsv();
+                TempData["SuccessMessage"] = "Saha başarıyla eklendi!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Saha adı yalnızca büyük harf ve boşluk içermelidir.";
             }
             return RedirectToAction("Index");
         }

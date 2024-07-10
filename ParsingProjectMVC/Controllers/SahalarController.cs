@@ -128,19 +128,29 @@ namespace ParsingProjectMVC.Controllers
             }
             return View(saha);
         }
-
         [HttpPost]
         public IActionResult Update(int id, SahaModel updatedSaha)
         {
+            var regex = new Regex(@"^[A-Z]+$"); // Yalnızca büyük harfleri kabul eden regex
             var saha = sahalar.FirstOrDefault(s => s.Id == id);
+
             if (saha == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Güncellenecek saha bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            if (!regex.IsMatch(updatedSaha.SahaAdi))
+            {
+                TempData["ErrorMessage"] = "Saha adı formatı doğru değil.";
+                return RedirectToAction("Index");
             }
 
             saha.SahaAdi = updatedSaha.SahaAdi;
             SaveSahalarToCsv();
+            TempData["SuccessMessage"] = "Saha başarıyla güncellendi!";
             return RedirectToAction("Index");
         }
+
     }
 }

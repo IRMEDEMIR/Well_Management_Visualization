@@ -129,20 +129,29 @@ namespace ParsingProjectMVC.Controllers
             }
             return View(kuyuGrubu);
         }
-
-        // POST: KuyuGruplari/Update
         [HttpPost]
         public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu)
         {
+            var regex = new Regex(@"^[A-Z]+-\d+$");  
             var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+
             if (kuyuGrubu == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Güncellenecek kuyu grubu bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            if (!regex.IsMatch(updatedKuyuGrubu.KuyuGrubuAdi))
+            {
+                TempData["ErrorMessage"] = "Kuyu grubu adı formatı doğru değil.";
+                return RedirectToAction("Index");
             }
 
             kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
-            SaveKuyuGruplariToCsv(); 
-            return RedirectToAction("Index"); 
-        }
+            SaveKuyuGruplariToCsv();
+            TempData["SuccessMessage"] = "Kuyu grubu başarıyla güncellendi!";
+            return RedirectToAction("Index");
+        }
+
     }
 }

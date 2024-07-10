@@ -4,10 +4,9 @@
     <h1 class="display-4">Wellborelar</h1>
 
     <div class="d-flex justify-content-center mb-3">
-        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px ;">
-            <input type="text" name="sahaAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
+        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
+            <input type="text" name="wellboreAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
             <button type="submit" class="btn btn-success">Ekle</button>
-
         </form>
     </div>
 
@@ -16,7 +15,7 @@
             <tr>
                 <th>ID</th>
                 <th>Wellbore Adı</th>
-                <th>Derinlik</th>
+                <th>Derinlik(m)</th>
                 <th>Güncelle/Sil</th>
             </tr>
         </thead>
@@ -28,7 +27,7 @@
                     <td>@wellbore.WellboreAdi</td>
                     <td>@wellbore.Derinlik</td>
                     <td>
-                        <a asp-action="Update" asp-route-id="@wellbore.Id" class="btn btn-primary btn-sm">Güncelle</a>
+                        <a asp-action="Update" asp-route-id="@wellbore.Id" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@wellbore.Id', '@wellbore.WellboreAdi', '@wellbore.Derinlik')">Güncelle</a>
                         <form asp-action="Delete" asp-controller="Wellborelar" method="post" style="display:inline;">
                             <input type="hidden" name="id" value="@wellbore.Id" />
                             <button type="submit" class="btn btn-danger btn-sm">X</button>
@@ -50,3 +49,40 @@
         }
     </ul>
 </nav>
+
+<!-- Update Kutusu -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">Wellbore Güncelle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <form asp-action="Update" asp-controller="Wellborelar" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="updateId" name="id" />
+                    <div class="form-group">
+                        <label for="updateWellboreAdi">Wellbore Adı</label>
+                        <input type="text" class="form-control" id="updateWellboreAdi" name="WellboreAdi" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="updateDerinlik">Derinlik</label>
+                        <input type="text" class="form-control" id="updateDerinlik" name="Derinlik" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="submit" class="btn btn-primary">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setUpdateFields(id, wellboreAdi, derinlik) {
+        document.getElementById('updateId').value = id;
+        document.getElementById('updateWellboreAdi').value = wellboreAdi;
+        document.getElementById('updateDerinlik').value = derinlik;
+    }
+</script>

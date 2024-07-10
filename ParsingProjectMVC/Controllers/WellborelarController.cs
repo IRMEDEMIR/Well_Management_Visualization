@@ -14,6 +14,8 @@ namespace ParsingProjectMVC.Controllers
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+
+
         private List<WellboreModel> wellborelar = new List<WellboreModel>();
 
         public WellborelarController()
@@ -114,6 +116,35 @@ namespace ParsingProjectMVC.Controllers
             ViewBag.TotalItems = totalItems;
 
             return View(pagedWellborelar);
+        }
+
+
+        [HttpGet]
+        public IActionResult Update(int id)
+        {
+            var wellbore = wellborelar.FirstOrDefault(k => k.Id == id);
+            if (wellbore == null)
+            {
+                return NotFound();
+            }
+            return View(wellbore);
+        }
+
+
+        [HttpPost]
+        public IActionResult Update(int id, WellboreModel updatedWellbore)
+        {
+            var wellbore = wellborelar.FirstOrDefault(k => k.Id == id);
+            if (wellbore == null)
+            {
+                return NotFound();
+            }
+
+            wellbore.KuyuGrubuAdi = updatedWellbore.KuyuGrubuAdi;
+            wellbore.Derinlik = updatedWellbore.Derinlik;
+            
+            SaveWellborelarToCsv();
+            return RedirectToAction("Index");
         }
     }
 }

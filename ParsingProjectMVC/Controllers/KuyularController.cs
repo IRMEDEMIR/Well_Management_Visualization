@@ -116,5 +116,34 @@ namespace ParsingProjectMVC.Controllers
 
             return View(pagedKuyular);
         }
+
+
+        [HttpGet]
+        public IActionResult Update(int id)
+        {
+            var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
+            if (kuyu == null)
+            {
+                return NotFound();
+            }
+            return View(kuyu);
+        }
+
+        // POST: KuyuGruplari/Update
+        [HttpPost]
+        public IActionResult Update(int id, KuyuModel updatedKuyu)
+        {
+            var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
+            if (kuyu == null)
+            {
+                return NotFound();
+            }
+
+            kuyu.KuyuGrubuAdi = updatedKuyu.KuyuGrubuAdi;
+            kuyu.Enlem = updatedKuyu.Enlem;
+            kuyu.Boylam = updatedKuyu.Boylam;
+            SaveKuyularToCsv();
+            return RedirectToAction("Index");
+        }
     }
 }

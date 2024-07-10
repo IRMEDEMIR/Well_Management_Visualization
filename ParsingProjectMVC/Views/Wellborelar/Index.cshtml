@@ -4,7 +4,10 @@
     <h1 class="display-4">Wellborelar</h1>
 
     <div class="text-right mb-3">
-        <a asp-action="Create" class="btn btn-success">Add New Wellbore</a>
+        <form asp-action="Create" method="post" class="form-inline">
+            <input type="text" name="wellboreAdi" class="form-control mr-2" placeholder="New Wellbore Adı" required />
+            <button type="submit" class="btn btn-success">Add New Wellbore</button>
+        </form>
     </div>
 
     <table class="table table-striped">

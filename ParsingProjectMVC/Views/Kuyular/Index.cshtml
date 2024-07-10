@@ -4,7 +4,10 @@
     <h1 class="display-4">Kuyular</h1>
 
     <div class="text-right mb-3">
-        <a asp-action="Create" class="btn btn-success">Add New Kuyu</a>
+        <form asp-action="Create" method="post" class="form-inline">
+            <input type="text" name="kuyuAdi" class="form-control mr-2" placeholder="New Kuyu Adı" required />
+            <button type="submit" class="btn btn-success">Add New Kuyu</button>
+        </form>
     </div>
 
     <table class="table table-striped">

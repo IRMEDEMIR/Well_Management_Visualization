@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CsvHelper;
+using Microsoft.AspNetCore.Mvc;
 using ParsingProjectMVC.Models;
-using CsvHelper;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,8 +10,7 @@ namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
 
         private List<KuyuModel> kuyular = new List<KuyuModel>();
 
@@ -50,35 +49,6 @@ namespace ParsingProjectMVC.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
-        {
-            var pagedKuyular = kuyular
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var totalItems = kuyular.Count;
-
-            ViewBag.PageNumber = pageNumber;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalItems = totalItems;
-
-            return View(pagedKuyular);
-        }
-
-        [HttpPost]
-        public IActionResult Delete(int id)
-        {
-            var kuyuToDelete = kuyular.FirstOrDefault(k => k.Id == id);
-            if (kuyuToDelete != null)
-            {
-                kuyular.Remove(kuyuToDelete);
-                SaveKuyularToCsv();
-            }
-            return RedirectToAction("Index");
-        }
-
         private void SaveKuyularToCsv()
         {
             try
@@ -97,6 +67,51 @@ namespace ParsingProjectMVC.Controllers
                 // Hata yönetimi
                 Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
             }
+        }
+
+        [HttpPost]
+        public IActionResult Create(string kuyuAdi)
+        {
+            if (!string.IsNullOrEmpty(kuyuAdi))
+            {
+                var newKuyu = new KuyuModel
+                {
+                    Id = kuyular.Count > 0 ? kuyular.Max(k => k.Id) + 1 : 1,
+                    KuyuAdi = kuyuAdi
+                };
+                kuyular.Add(newKuyu);
+                SaveKuyularToCsv();
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var kuyuToDelete = kuyular.FirstOrDefault(k => k.Id == id);
+            if (kuyuToDelete != null)
+            {
+                kuyular.Remove(kuyuToDelete);
+                SaveKuyularToCsv();
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
+        {
+            var pagedKuyular = kuyular
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var totalItems = kuyular.Count;
+
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+
+            return View(pagedKuyular);
         }
     }
 }

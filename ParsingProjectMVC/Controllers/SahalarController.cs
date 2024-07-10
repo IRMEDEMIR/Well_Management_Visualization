@@ -10,7 +10,7 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         private List<SahaModel> sahalar = new List<SahaModel>();
 
         public SahalarController()
@@ -76,6 +76,22 @@ namespace ParsingProjectMVC.Controllers
             ViewBag.TotalItems = totalItems;
 
             return View(pagedSahalar);
+        }
+
+        [HttpPost]
+        public IActionResult Create(string sahaAdi)
+        {
+            if (!string.IsNullOrEmpty(sahaAdi))
+            {
+                var newSaha = new SahaModel
+                {
+                    Id = sahalar.Count > 0 ? sahalar.Max(s => s.Id) + 1 : 1,
+                    SahaAdi = sahaAdi
+                };
+                sahalar.Add(newSaha);
+                SaveSahalarToCsv();
+            }
+            return RedirectToAction("Index");
         }
 
         [HttpPost]

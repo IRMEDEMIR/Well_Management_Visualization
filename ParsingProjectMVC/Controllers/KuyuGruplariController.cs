@@ -2,13 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using ParsingProjectMVC.Models;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class KuyuGruplariController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\Erdil\\Desktop\\TPAO_01\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
+        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
 
         private List<KuyuGrubuModel> kuyuGruplari = new List<KuyuGrubuModel>();
 
@@ -37,7 +39,7 @@ namespace ParsingProjectMVC.Controllers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // Hata yönetimi
                 Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
@@ -59,6 +61,22 @@ namespace ParsingProjectMVC.Controllers
                 // Hata yönetimi
                 Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
             }
+        }
+
+        [HttpPost]
+        public IActionResult Create(string kuyuGrubuAdi)
+        {
+            if (!string.IsNullOrEmpty(kuyuGrubuAdi))
+            {
+                var newKuyuGrubu = new KuyuGrubuModel
+                {
+                    Id = kuyuGruplari.Count > 0 ? kuyuGruplari.Max(k => k.Id) + 1 : 1,
+                    KuyuGrubuAdi = kuyuGrubuAdi
+                };
+                kuyuGruplari.Add(newKuyuGrubu);
+                SaveKuyuGruplariToCsv();
+            }
+            return RedirectToAction("Index");
         }
 
         [HttpPost]

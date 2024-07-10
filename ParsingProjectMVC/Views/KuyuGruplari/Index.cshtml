@@ -4,7 +4,10 @@
     <h1 class="display-4">Kuyu Grupları</h1>
 
     <div class="text-right mb-3">
-        <a asp-action="Create" class="btn btn-success">Add New Kuyu Grubu</a>
+        <form asp-action="Create" method="post" class="form-inline">
+            <input type="text" name="kuyuGrubuAdi" class="form-control mr-2" placeholder="New Kuyu Grubu Adı" required />
+            <button type="submit" class="btn btn-success">Add New Kuyu Grubu</button>
+        </form>
     </div>
 
     <table class="table table-striped">

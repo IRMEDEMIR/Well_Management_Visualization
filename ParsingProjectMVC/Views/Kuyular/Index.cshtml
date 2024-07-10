@@ -3,10 +3,11 @@
 <div class="text-center">
     <h1 class="display-4">Kuyular</h1>
 
-    <div class="text-right mb-3">
-        <form asp-action="Create" method="post" class="form-inline">
-            <input type="text" name="kuyuAdi" class="form-control mr-2" placeholder="New Kuyu Adı" required />
-            <button type="submit" class="btn btn-success">Add New Kuyu</button>
+    <div class="d-flex justify-content-center mb-3">
+        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px ;">
+            <input type="text" name="sahaAdi" class="form-control me-2" placeholder="Kuyu Adını Giriniz" required />
+            <button type="submit" class="btn btn-success">Ekle</button>
+
         </form>
     </div>
 
@@ -15,7 +16,10 @@
             <tr>
                 <th>ID</th>
                 <th>Kuyu Adı</th>
-                <th>Actions</th>
+                <th>Enlem</th>
+                <th>Boylam</th>
+                <th>Güncelle/Sil</th>
+
             </tr>
         </thead>
         <tbody>
@@ -24,8 +28,10 @@
                 <tr>
                     <td>@kuyu.Id</td>
                     <td>@kuyu.KuyuAdi</td>
+                    <td>@kuyu.Enlem</td>
+                    <td>@kuyu.Boylam</td>
                     <td>
-                        <a asp-action="Update" asp-route-id="@kuyu.Id" class="btn btn-primary btn-sm">Update</a>
+                        <a asp-action="Update" asp-route-id="@kuyu.Id" class="btn btn-primary btn-sm">Güncelle</a>
                         <form asp-action="Delete" asp-controller="Kuyular" method="post" style="display:inline;">
                             <input type="hidden" name="id" value="@kuyu.Id" />
                             <button type="submit" class="btn btn-danger btn-sm">X</button>

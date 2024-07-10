@@ -11,8 +11,9 @@ namespace ParsingProjectMVC.Controllers
     public class KuyuGruplariController : Controller
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
-
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
+        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         private List<KuyuGrubuModel> kuyuGruplari = new List<KuyuGrubuModel>();
 
         public KuyuGruplariController()
@@ -108,5 +109,32 @@ namespace ParsingProjectMVC.Controllers
 
             return View(pagedKuyuGruplari);
         }
+
+
+        [HttpGet]
+        public IActionResult Update(int id)
+        {
+            var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+            if (kuyuGrubu == null)
+            {
+                return NotFound();
+            }
+            return View(kuyuGrubu);
+        }
+
+        // POST: KuyuGruplari/Update
+        [HttpPost]
+        public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu)
+        {
+            var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+            if (kuyuGrubu == null)
+            {
+                return NotFound();
+            }
+
+            kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
+            SaveKuyuGruplariToCsv(); 
+            return RedirectToAction("Index"); 
+        }
     }
 }

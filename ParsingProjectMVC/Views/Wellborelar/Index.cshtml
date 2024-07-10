@@ -4,10 +4,9 @@
     <h1 class="display-4">Wellborelar</h1>
 
     <div class="d-flex justify-content-center mb-3">
-        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px ;">
-            <input type="text" name="sahaAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
+        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
+            <input type="text" name="wellboreAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
             <button type="submit" class="btn btn-success">Ekle</button>
-
         </form>
     </div>
 
@@ -16,7 +15,7 @@
             <tr>
                 <th>ID</th>
                 <th>Wellbore Adı</th>
-                <th>Derinlik</th>
+                <th>Derinlik(m)</th>
                 <th>Güncelle/Sil</th>
             </tr>
         </thead>

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ParsingProjectMVC.Controllers
 {
@@ -12,7 +13,7 @@ namespace ParsingProjectMVC.Controllers
     {
         private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         private List<KuyuGrubuModel> kuyuGruplari = new List<KuyuGrubuModel>();
 
@@ -68,7 +69,9 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string kuyuGrubuAdi)
         {
-            if (!string.IsNullOrEmpty(kuyuGrubuAdi))
+            var regex = new Regex(@"^[A-Z]+-\d+$");
+
+            if (!string.IsNullOrEmpty(kuyuGrubuAdi) && regex.IsMatch(kuyuGrubuAdi))
             {
                 var newKuyuGrubu = new KuyuGrubuModel
                 {
@@ -77,6 +80,11 @@ namespace ParsingProjectMVC.Controllers
                 };
                 kuyuGruplari.Add(newKuyuGrubu);
                 SaveKuyuGruplariToCsv();
+                TempData["SuccessMessage"] = "Kuyu grubu başarıyla eklendi!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Kuyu grubu adı formatınız doğru değil.";
             }
             return RedirectToAction("Index");
         }
@@ -121,20 +129,29 @@ namespace ParsingProjectMVC.Controllers
             }
             return View(kuyuGrubu);
         }
-
-        // POST: KuyuGruplari/Update
         [HttpPost]
         public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu)
         {
+            var regex = new Regex(@"^[A-Z]+-\d+$");  
             var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+
             if (kuyuGrubu == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Güncellenecek kuyu grubu bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            if (!regex.IsMatch(updatedKuyuGrubu.KuyuGrubuAdi))
+            {
+                TempData["ErrorMessage"] = "Kuyu grubu adı formatı doğru değil.";
+                return RedirectToAction("Index");
             }
 
             kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
-            SaveKuyuGruplariToCsv(); 
-            return RedirectToAction("Index"); 
-        }
+            SaveKuyuGruplariToCsv();
+            TempData["SuccessMessage"] = "Kuyu grubu başarıyla güncellendi!";
+            return RedirectToAction("Index");
+        }
+
     }
 }

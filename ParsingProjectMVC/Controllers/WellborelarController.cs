@@ -38,17 +38,17 @@ namespace ParsingProjectMVC.Controllers
                         {
                             Id = idCounter++,
                             WellboreAdi = record.WellboreAdi,
+                            Derinlik = GenerateRandomDepth(), // Generate random depth
                             KuyuGrubuAdi = null,
                             KuyuAdi = null,
-                            SahaAdi = null,
-                            Derinlik = null
+                            SahaAdi = null
                         });
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Hata yönetimi
+                // Error handling
                 Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
             }
         }
@@ -62,15 +62,23 @@ namespace ParsingProjectMVC.Controllers
                 {
                     csv.WriteRecords(wellborelar.Select(w => new
                     {
-                        w.WellboreAdi
+                        w.WellboreAdi,
+                        w.Derinlik // Save depth value
                     }));
                 }
             }
             catch (Exception ex)
             {
-                // Hata yönetimi
+                // Error handling
                 Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
             }
+        }
+
+        private int GenerateRandomDepth()
+        {
+            Random random = new Random();
+            // Uniform distribution between 100 and 10000
+            return random.Next(100, 10001);
         }
 
         [HttpPost]
@@ -81,7 +89,8 @@ namespace ParsingProjectMVC.Controllers
                 var newWellbore = new WellboreModel
                 {
                     Id = wellborelar.Count > 0 ? wellborelar.Max(w => w.Id) + 1 : 1,
-                    WellboreAdi = wellboreAdi
+                    WellboreAdi = wellboreAdi,
+                    Derinlik = GenerateRandomDepth() // Generate random depth for new wellbore
                 };
                 wellborelar.Add(newWellbore);
                 SaveWellborelarToCsv();

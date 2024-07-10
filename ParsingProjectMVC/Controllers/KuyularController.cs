@@ -10,10 +10,10 @@ namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
-        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
 
         private List<KuyuModel> kuyular = new List<KuyuModel>();
 
@@ -33,12 +33,13 @@ namespace ParsingProjectMVC.Controllers
                     int idCounter = 1;
                     foreach (var record in records)
                     {
+                        var (lat, lon) = GenerateRandomCoordinates(); // Generate random coordinates
                         kuyular.Add(new KuyuModel
                         {
                             Id = idCounter++,
                             KuyuAdi = record.KuyuAdi,
-                            Enlem = null,
-                            Boylam = null,
+                            Enlem = lat,
+                            Boylam = lon,
                             KuyuGrubuAdi = null,
                             SahaAdi = null
                         });
@@ -47,10 +48,11 @@ namespace ParsingProjectMVC.Controllers
             }
             catch (Exception ex)
             {
-                // Hata yönetimi
-                Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
+                // Error handling
+                Console.WriteLine($"Error reading CSV file: {ex.Message}");
             }
         }
+
 
         private void SaveKuyularToCsv()
         {
@@ -116,6 +118,23 @@ namespace ParsingProjectMVC.Controllers
 
             return View(pagedKuyular);
         }
+
+        private (double, double) GenerateRandomCoordinates()
+        {
+            // Define boundaries of Turkey in terms of latitude and longitude
+            double minLat = 36.0;
+            double maxLat = 42.0;
+            double minLon = 26.0;
+            double maxLon = 45.0;
+
+            // Generate random coordinates within the defined boundaries
+            Random rand = new Random();
+            double lat = rand.NextDouble() * (maxLat - minLat) + minLat;
+            double lon = rand.NextDouble() * (maxLon - minLon) + minLon;
+
+            return (lat, lon);
+        }
+
 
 
         [HttpGet]

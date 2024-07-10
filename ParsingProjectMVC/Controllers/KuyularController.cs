@@ -5,14 +5,15 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
 
         private List<KuyuModel> kuyular = new List<KuyuModel>();
@@ -73,11 +74,13 @@ namespace ParsingProjectMVC.Controllers
                 Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
             }
         }
-
         [HttpPost]
         public IActionResult Create(string kuyuAdi)
         {
-            if (!string.IsNullOrEmpty(kuyuAdi))
+            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");
+            bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(kuyuAdi, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrEmpty(kuyuAdi) && regex.IsMatch(kuyuAdi) && !isExisting)
             {
                 var newKuyu = new KuyuModel
                 {
@@ -86,9 +89,23 @@ namespace ParsingProjectMVC.Controllers
                 };
                 kuyular.Add(newKuyu);
                 SaveKuyularToCsv();
+                TempData["SuccessMessage"] = "Kuyu başarıyla eklendi!";
+            }
+            else
+            {
+                if (isExisting)
+                {
+                    TempData["ErrorMessage"] = "Bu kuyu adı zaten mevcut.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Kuyu adı formatınız doğru değil.";
+                }
             }
             return RedirectToAction("Index");
         }
+
+
 
         [HttpPost]
         public IActionResult Delete(int id)
@@ -134,8 +151,6 @@ namespace ParsingProjectMVC.Controllers
 
             return (lat, lon);
         }
-
-
 
         [HttpGet]
         public IActionResult Update(int id)

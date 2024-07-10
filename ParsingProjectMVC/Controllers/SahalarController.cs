@@ -11,9 +11,9 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
-        //private readonly string _filePath = "C:\Users\Pc\OneDrive\Masaüstü\tpao_list\Parsing_Project\TPAO_01\output\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
 
         private List<SahaModel> sahalar = new List<SahaModel>();
@@ -88,7 +88,9 @@ namespace ParsingProjectMVC.Controllers
         {
             var regex = new Regex(@"^[A-Z\s]+$");
 
-            if (!string.IsNullOrEmpty(sahaAdi) && regex.IsMatch(sahaAdi))
+            bool isExisting = sahalar.Any(s => s.SahaAdi.Equals(sahaAdi, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrEmpty(sahaAdi) && regex.IsMatch(sahaAdi) && !isExisting)
             {
                 var newSaha = new SahaModel
                 {
@@ -101,10 +103,18 @@ namespace ParsingProjectMVC.Controllers
             }
             else
             {
-                TempData["ErrorMessage"] = "Saha adı yalnızca büyük harf ve boşluk içermelidir.";
+                if (isExisting)
+                {
+                    TempData["ErrorMessage"] = "Bu saha adı zaten mevcut.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Saha adı yalnızca büyük harf ve boşluk içermelidir.";
+                }
             }
             return RedirectToAction("Index");
         }
+
 
         [HttpPost]
         public IActionResult Delete(int id)
@@ -131,7 +141,7 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Update(int id, SahaModel updatedSaha)
         {
-            var regex = new Regex(@"^[A-Z]+$"); // Yalnızca büyük harfleri kabul eden regex
+            var regex = new Regex(@"^[A-Z]+$"); 
             var saha = sahalar.FirstOrDefault(s => s.Id == id);
 
             if (saha == null)

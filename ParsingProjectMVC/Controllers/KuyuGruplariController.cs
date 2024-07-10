@@ -11,7 +11,7 @@ namespace ParsingProjectMVC.Controllers
 {
     public class KuyuGruplariController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
@@ -69,9 +69,10 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string kuyuGrubuAdi)
         {
-            var regex = new Regex(@"^[A-Z]+-\d+$");
+            var regex = new Regex(@"^[A-Z]+-\d+$");  
+            bool isExisting = kuyuGruplari.Any(k => k.KuyuGrubuAdi.Equals(kuyuGrubuAdi, StringComparison.OrdinalIgnoreCase));
 
-            if (!string.IsNullOrEmpty(kuyuGrubuAdi) && regex.IsMatch(kuyuGrubuAdi))
+            if (!string.IsNullOrEmpty(kuyuGrubuAdi) && regex.IsMatch(kuyuGrubuAdi) && !isExisting)
             {
                 var newKuyuGrubu = new KuyuGrubuModel
                 {
@@ -80,14 +81,22 @@ namespace ParsingProjectMVC.Controllers
                 };
                 kuyuGruplari.Add(newKuyuGrubu);
                 SaveKuyuGruplariToCsv();
-                TempData["SuccessMessage"] = "Kuyu grubu başarıyla eklendi!";
+                TempData["SuccessMessage"] = "Kuyu Grubu başarıyla eklendi!";
             }
             else
             {
-                TempData["ErrorMessage"] = "Kuyu grubu adı formatınız doğru değil.";
+                if (isExisting)
+                {
+                    TempData["ErrorMessage"] = "Kuyu Grubu adı zaten mevcut.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Kuyu Grubu adı formatınız doğru değil.";
+                }
             }
             return RedirectToAction("Index");
         }
+
 
         [HttpPost]
         public IActionResult Delete(int id)
@@ -137,19 +146,19 @@ namespace ParsingProjectMVC.Controllers
 
             if (kuyuGrubu == null)
             {
-                TempData["ErrorMessage"] = "Güncellenecek kuyu grubu bulunamadı.";
+                TempData["ErrorMessage"] = "Güncellenecek Kuyu Grubu bulunamadı.";
                 return RedirectToAction("Index");
             }
 
             if (!regex.IsMatch(updatedKuyuGrubu.KuyuGrubuAdi))
             {
-                TempData["ErrorMessage"] = "Kuyu grubu adı formatı doğru değil.";
+                TempData["ErrorMessage"] = "Kuyu Grubu adı formatınız doğru değil.";
                 return RedirectToAction("Index");
             }
 
             kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
             SaveKuyuGruplariToCsv();
-            TempData["SuccessMessage"] = "Kuyu grubu başarıyla güncellendi!";
+            TempData["SuccessMessage"] = "Kuyu Grubu başarıyla güncellendi!";
             return RedirectToAction("Index");
         }
 

@@ -1,7 +1,30 @@
-﻿@{
+﻿@model IEnumerable<ParsingProjectMVC.Models.KuyuModel>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Harita</h1>
 </div>
+
+<div id="map" style="height: 600px;"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<script>
+    var map = L.map('map').setView([38.963745, 35.243322], 6); // Türkiye'nin merkezi
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    @foreach (var kuyu in Model)
+    {
+        <text>
+            L.marker([@kuyu.Enlem, @kuyu.Boylam]).addTo(map)
+                .bindPopup('@kuyu.KuyuAdi');
+        </text>
+    }
+</script>

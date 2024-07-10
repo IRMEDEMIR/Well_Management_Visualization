@@ -10,9 +10,9 @@ namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
 
 
@@ -38,7 +38,7 @@ namespace ParsingProjectMVC.Controllers
                         {
                             Id = idCounter++,
                             WellboreAdi = record.WellboreAdi,
-                            Derinlik = GenerateRandomDepth(), // Generate random depth
+                            Derinlik = record.Derinlik,
                             KuyuGrubuAdi = null,
                             KuyuAdi = null,
                             SahaAdi = null
@@ -89,8 +89,7 @@ namespace ParsingProjectMVC.Controllers
                 var newWellbore = new WellboreModel
                 {
                     Id = wellborelar.Count > 0 ? wellborelar.Max(w => w.Id) + 1 : 1,
-                    WellboreAdi = wellboreAdi,
-                    Derinlik = GenerateRandomDepth() // Generate random depth for new wellbore
+                    WellboreAdi = wellboreAdi
                 };
                 wellborelar.Add(newWellbore);
                 SaveWellborelarToCsv();
@@ -151,7 +150,7 @@ namespace ParsingProjectMVC.Controllers
 
             wellbore.WellboreAdi = updatedWellbore.WellboreAdi;
             wellbore.Derinlik = updatedWellbore.Derinlik;
-            
+
             SaveWellborelarToCsv();
             return RedirectToAction("Index");
         }

@@ -140,7 +140,7 @@ namespace ParsingProjectMVC.Controllers
                 return NotFound();
             }
 
-            wellbore.KuyuGrubuAdi = updatedWellbore.KuyuGrubuAdi;
+            wellbore.WellboreAdi = updatedWellbore.WellboreAdi;
             wellbore.Derinlik = updatedWellbore.Derinlik;
             
             SaveWellborelarToCsv();

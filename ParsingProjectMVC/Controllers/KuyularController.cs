@@ -139,7 +139,7 @@ namespace ParsingProjectMVC.Controllers
                 return NotFound();
             }
 
-            kuyu.KuyuGrubuAdi = updatedKuyu.KuyuGrubuAdi;
+            kuyu.KuyuAdi = updatedKuyu.KuyuAdi;
             kuyu.Enlem = updatedKuyu.Enlem;
             kuyu.Boylam = updatedKuyu.Boylam;
             SaveKuyularToCsv();

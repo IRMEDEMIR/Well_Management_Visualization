@@ -11,10 +11,10 @@ namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
 
 
         private List<WellboreModel> wellborelar = new List<WellboreModel>();
@@ -119,7 +119,7 @@ namespace ParsingProjectMVC.Controllers
 
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
             var wellboreToDelete = wellborelar.FirstOrDefault(k => k.Id == id);
             if (wellboreToDelete != null)
@@ -127,7 +127,7 @@ namespace ParsingProjectMVC.Controllers
                 wellborelar.Remove(wellboreToDelete);
                 SaveWellborelarToCsv();
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
         [HttpGet]

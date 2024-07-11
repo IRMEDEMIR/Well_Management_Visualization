@@ -11,10 +11,10 @@ namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
 
         private List<KuyuModel> kuyular = new List<KuyuModel>();
 
@@ -114,7 +114,7 @@ namespace ParsingProjectMVC.Controllers
 
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
             var kuyuToDelete = kuyular.FirstOrDefault(k => k.Id == id);
             if (kuyuToDelete != null)
@@ -122,7 +122,7 @@ namespace ParsingProjectMVC.Controllers
                 kuyular.Remove(kuyuToDelete);
                 SaveKuyularToCsv();
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
         [HttpGet]

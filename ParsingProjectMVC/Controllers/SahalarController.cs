@@ -11,10 +11,10 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
 
         private List<SahaModel> sahalar = new List<SahaModel>();
 
@@ -84,7 +84,7 @@ namespace ParsingProjectMVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(string sahaAdi)
+        public IActionResult Create(string sahaAdi, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z\s]+$");
 
@@ -112,12 +112,12 @@ namespace ParsingProjectMVC.Controllers
                     TempData["ErrorMessage"] = "Saha adı yalnızca büyük harf ve boşluk içermelidir.";
                 }
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
             var saha = sahalar.FirstOrDefault(s => s.Id == id);
             if (saha != null)
@@ -125,8 +125,10 @@ namespace ParsingProjectMVC.Controllers
                 sahalar.Remove(saha);
                 SaveSahalarToCsv();
             }
-            return RedirectToAction("Index");
+
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
+
 
         [HttpGet]
         public IActionResult Update(int id)
@@ -139,7 +141,7 @@ namespace ParsingProjectMVC.Controllers
             return View(saha);
         }
         [HttpPost]
-        public IActionResult Update(int id, SahaModel updatedSaha)
+        public IActionResult Update(int id, SahaModel updatedSaha, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z\s]+$"); 
             var saha = sahalar.FirstOrDefault(s => s.Id == id);
@@ -170,7 +172,7 @@ namespace ParsingProjectMVC.Controllers
                 }
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
 

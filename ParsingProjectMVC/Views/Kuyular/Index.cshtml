@@ -53,6 +53,8 @@
                                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@kuyu.Id', '@kuyu.KuyuAdi', '@kuyu.Enlem', '@kuyu.Boylam')">Güncelle</button>
                                     <form asp-action="Delete" asp-controller="Kuyular" method="post" style="display:inline;">
                                         <input type="hidden" name="id" value="@kuyu.Id" />
+                                        <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                                        <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                                         <button type="submit" class="btn btn-danger btn-sm">Sil</button>
                                     </form>
                                 </td>

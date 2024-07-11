@@ -83,9 +83,9 @@ namespace ParsingProjectMVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(string wellboreAdi)
+        public IActionResult Create(string wellboreAdi, string derinlik) 
         {
-            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$"); 
+            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$");
 
             if (!string.IsNullOrEmpty(wellboreAdi) && regex.IsMatch(wellboreAdi))
             {
@@ -99,7 +99,8 @@ namespace ParsingProjectMVC.Controllers
                 var newWellbore = new WellboreModel
                 {
                     Id = wellborelar.Count > 0 ? wellborelar.Max(w => w.Id) + 1 : 1,
-                    WellboreAdi = wellboreAdi
+                    WellboreAdi = wellboreAdi,
+                    Derinlik = derinlik 
                 };
                 wellborelar.Add(newWellbore);
                 SaveWellborelarToCsv();
@@ -112,6 +113,7 @@ namespace ParsingProjectMVC.Controllers
                 return RedirectToAction("Index");
             }
         }
+
 
 
 

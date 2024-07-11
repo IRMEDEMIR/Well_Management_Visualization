@@ -75,22 +75,27 @@ namespace ParsingProjectMVC.Controllers
                 Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
             }
         }
+
         [HttpPost]
-        public IActionResult Create(string kuyuAdi)
+        public IActionResult Create(string kuyuAdi, string enlem, string boylam)
         {
             var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");
             bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(kuyuAdi, StringComparison.OrdinalIgnoreCase));
 
-            if (!string.IsNullOrEmpty(kuyuAdi) && regex.IsMatch(kuyuAdi) && !isExisting)
+            if (!string.IsNullOrEmpty(kuyuAdi) && regex.IsMatch(kuyuAdi) && !isExisting && double.TryParse(enlem, out double parsedEnlem) && double.TryParse(boylam, out double parsedBoylam))
             {
                 var newKuyu = new KuyuModel
                 {
                     Id = kuyular.Count > 0 ? kuyular.Max(k => k.Id) + 1 : 1,
-                    KuyuAdi = kuyuAdi
+                    KuyuAdi = kuyuAdi,
+                    Enlem = parsedEnlem.ToString(), 
+                    Boylam = parsedBoylam.ToString() 
                 };
                 kuyular.Add(newKuyu);
                 SaveKuyularToCsv();
-                TempData["SuccessMessage"] = "Kuyu başarıyla eklendi!";
+
+            TempData["SuccessMessage"] = "Kuyu başarıyla eklendi!";
+                return RedirectToAction("Index");
             }
             else
             {
@@ -100,10 +105,10 @@ namespace ParsingProjectMVC.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Kuyu adı formatınız doğru değil.";
+                    TempData["ErrorMessage"] = "Kuyu adı veya koordinat formatınız doğru değil.";
                 }
+                return RedirectToAction("Index");
             }
-            return RedirectToAction("Index");
         }
 
 

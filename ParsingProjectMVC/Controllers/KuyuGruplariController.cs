@@ -128,7 +128,7 @@ namespace ParsingProjectMVC.Controllers
 
             return View(pagedKuyuGruplari);
         }
-
+        //
 
         [HttpGet]
         public IActionResult Update(int id)

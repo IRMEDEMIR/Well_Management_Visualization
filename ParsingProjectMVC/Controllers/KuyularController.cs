@@ -12,9 +12,9 @@ namespace ParsingProjectMVC.Controllers
     public class KuyularController : Controller
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
 
         private List<KuyuModel> kuyular = new List<KuyuModel>();
 
@@ -79,7 +79,8 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string kuyuAdi, string enlem, string boylam, int pageNumber = 1, int pageSize = 50)
         {
-            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");
+            var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?$");
+
             bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(kuyuAdi, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(kuyuAdi) && regex.IsMatch(kuyuAdi) && !isExisting && double.TryParse(enlem, out double parsedEnlem) && double.TryParse(boylam, out double parsedBoylam))
@@ -157,7 +158,9 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Update(int id, KuyuModel updatedKuyu, int pageNumber = 1, int pageSize = 50)
         {
-            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");  
+            var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?$");
+
+
             var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
 
             if (kuyu == null)

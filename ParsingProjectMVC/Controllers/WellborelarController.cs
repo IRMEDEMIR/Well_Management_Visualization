@@ -12,9 +12,9 @@ namespace ParsingProjectMVC.Controllers
     public class WellborelarController : Controller
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
 
 
         private List<WellboreModel> wellborelar = new List<WellboreModel>();
@@ -85,7 +85,7 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string wellboreAdi, string derinlik, int pageNumber = 1, int pageSize = 50) 
         {
-            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$");
+            var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?(\/[SMR]\d*)*$");
 
             if (!string.IsNullOrEmpty(wellboreAdi) && regex.IsMatch(wellboreAdi))
             {
@@ -163,7 +163,8 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Update(int id, WellboreModel updatedWellbore, int pageNumber = 1, int pageSize = 50)
         {
-            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$"); 
+            var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?(\/[SMR]\d*)*$");
+
             var wellbore = wellborelar.FirstOrDefault(w => w.Id == id);
 
             if (wellbore == null)

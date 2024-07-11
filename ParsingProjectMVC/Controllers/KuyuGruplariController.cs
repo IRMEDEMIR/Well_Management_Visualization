@@ -12,9 +12,9 @@ namespace ParsingProjectMVC.Controllers
     public class KuyuGruplariController : Controller
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
+        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyu Grupları.csv";
         
         private List<KuyuGrubuModel> kuyuGruplari = new List<KuyuGrubuModel>();
 
@@ -70,7 +70,8 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string kuyuGrubuAdi, int pageNumber = 1, int pageSize = 50)
         {
-            var regex = new Regex(@"^[A-Z]+-\d+$");  
+            var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+$");
+
             bool isExisting = kuyuGruplari.Any(k => k.KuyuGrubuAdi.Equals(kuyuGrubuAdi, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(kuyuGrubuAdi) && regex.IsMatch(kuyuGrubuAdi) && !isExisting)
@@ -142,7 +143,8 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu, int pageNumber = 1, int pageSize = 50)
         {
-            var regex = new Regex(@"^[A-Z]+-\d+$");
+            var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+$");
+
             var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
 
             if (kuyuGrubu == null)

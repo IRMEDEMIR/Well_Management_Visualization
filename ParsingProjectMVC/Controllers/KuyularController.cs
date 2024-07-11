@@ -77,7 +77,7 @@ namespace ParsingProjectMVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(string kuyuAdi, string enlem, string boylam)
+        public IActionResult Create(string kuyuAdi, string enlem, string boylam, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");
             bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(kuyuAdi, StringComparison.OrdinalIgnoreCase));
@@ -95,7 +95,7 @@ namespace ParsingProjectMVC.Controllers
                 SaveKuyularToCsv();
 
             TempData["SuccessMessage"] = "Kuyu başarıyla eklendi!";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
             else
             {
@@ -155,7 +155,7 @@ namespace ParsingProjectMVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Update(int id, KuyuModel updatedKuyu)
+        public IActionResult Update(int id, KuyuModel updatedKuyu, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");  
             var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
@@ -163,13 +163,13 @@ namespace ParsingProjectMVC.Controllers
             if (kuyu == null)
             {
                 TempData["ErrorMessage"] = "Güncellenecek Kuyu bulunamadı.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             if (!regex.IsMatch(updatedKuyu.KuyuAdi))
             {
                 TempData["ErrorMessage"] = "Kuyu adı formatınız doğru değil.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(updatedKuyu.KuyuAdi, StringComparison.OrdinalIgnoreCase) && k.Id != id);
@@ -177,7 +177,7 @@ namespace ParsingProjectMVC.Controllers
             if (isExisting)
             {
                 TempData["ErrorMessage"] = "Bu Kuyu adı kullanılmakta.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             kuyu.KuyuAdi = updatedKuyu.KuyuAdi;
@@ -185,7 +185,7 @@ namespace ParsingProjectMVC.Controllers
             kuyu.Boylam = updatedKuyu.Boylam;
             SaveKuyularToCsv();
             TempData["SuccessMessage"] = "Kuyu başarıyla güncellendi!";
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
     }

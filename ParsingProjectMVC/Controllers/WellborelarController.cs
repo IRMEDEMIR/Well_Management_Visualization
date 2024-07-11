@@ -83,7 +83,7 @@ namespace ParsingProjectMVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(string wellboreAdi, string derinlik) 
+        public IActionResult Create(string wellboreAdi, string derinlik, int pageNumber = 1, int pageSize = 50) 
         {
             var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$");
 
@@ -93,7 +93,7 @@ namespace ParsingProjectMVC.Controllers
                 if (isExisting)
                 {
                     TempData["ErrorMessage"] = "Bu Wellbore adı zaten mevcut.";
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Index", new { pageNumber, pageSize });
                 }
 
                 var newWellbore = new WellboreModel
@@ -105,12 +105,12 @@ namespace ParsingProjectMVC.Controllers
                 wellborelar.Add(newWellbore);
                 SaveWellborelarToCsv();
                 TempData["SuccessMessage"] = "Wellbore başarıyla eklendi!";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
             else
             {
                 TempData["ErrorMessage"] = "Wellbore adı formatı yanlış.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
         }
 
@@ -161,7 +161,7 @@ namespace ParsingProjectMVC.Controllers
 
 
         [HttpPost]
-        public IActionResult Update(int id, WellboreModel updatedWellbore)
+        public IActionResult Update(int id, WellboreModel updatedWellbore, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$"); 
             var wellbore = wellborelar.FirstOrDefault(w => w.Id == id);
@@ -169,27 +169,27 @@ namespace ParsingProjectMVC.Controllers
             if (wellbore == null)
             {
                 TempData["ErrorMessage"] = "Güncellenecek Wellbore bulunamadı.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             if (!regex.IsMatch(updatedWellbore.WellboreAdi))
             {
                 TempData["ErrorMessage"] = "Wellbore adı formatı yanlış.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             bool isExisting = wellborelar.Any(w => w.WellboreAdi.Equals(updatedWellbore.WellboreAdi, StringComparison.OrdinalIgnoreCase) && w.Id != id);
             if (isExisting)
             {
                 TempData["ErrorMessage"] = "Bu Wellbore adı kullanılmakta.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             wellbore.WellboreAdi = updatedWellbore.WellboreAdi;
             wellbore.Derinlik = updatedWellbore.Derinlik;
             SaveWellborelarToCsv();
             TempData["SuccessMessage"] = "Wellbore başarıyla güncellendi!";
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
     }

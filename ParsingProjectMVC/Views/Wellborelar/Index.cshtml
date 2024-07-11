@@ -8,6 +8,8 @@
             <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
                 <input type="text" name="wellboreAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
                 <input type="number" name="derinlik" class="form-control me-2" placeholder="Derinliği Giriniz" required />
+                <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                 <button type="submit" class="btn btn-success">Ekle</button>
             </form>
         </div>
@@ -86,6 +88,8 @@
             <form asp-action="Update" asp-controller="Wellborelar" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="updateId" name="id" />
+                    <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                    <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                     <div class="form-group mb-3">
                         <label for="updateWellboreAdi" class="form-label">Wellbore Adı</label>
                         <input type="text" class="form-control" id="updateWellboreAdi" name="WellboreAdi" required>

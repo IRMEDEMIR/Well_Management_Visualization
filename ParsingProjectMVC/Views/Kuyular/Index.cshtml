@@ -9,6 +9,8 @@
                 <input type="text" name="kuyuAdi" class="form-control me-2" placeholder="Kuyu Adını Giriniz" required />
                 <input type="text" name="enlem" class="form-control me-2" placeholder="Enlem Giriniz" required />
                 <input type="text" name="boylam" class="form-control me-2" placeholder="Boylam Giriniz" required />
+                <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                 <button type="submit" class="btn btn-success">Ekle</button>
             </form>
         </div>
@@ -89,6 +91,8 @@
             <form asp-action="Update" asp-controller="Kuyular" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="updateId" name="id" />
+                    <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                    <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                     <div class="form-group mb-3">
                         <label for="updateKuyuAdi" class="form-label">Kuyu Adı</label>
                         <input type="text" class="form-control" id="updateKuyuAdi" name="KuyuAdi" required>

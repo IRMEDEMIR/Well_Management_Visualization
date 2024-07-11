@@ -11,9 +11,9 @@ namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
 
         private List<SahaModel> sahalar = new List<SahaModel>();
@@ -141,7 +141,7 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Update(int id, SahaModel updatedSaha)
         {
-            var regex = new Regex(@"^[A-Z]+$"); 
+            var regex = new Regex(@"^[A-Z\s]+$"); 
             var saha = sahalar.FirstOrDefault(s => s.Id == id);
 
             if (saha == null)
@@ -150,17 +150,29 @@ namespace ParsingProjectMVC.Controllers
                 return RedirectToAction("Index");
             }
 
-            if (!regex.IsMatch(updatedSaha.SahaAdi))
+            bool isExisting = sahalar.Any(s => s.SahaAdi.Equals(updatedSaha.SahaAdi, StringComparison.OrdinalIgnoreCase) && s.Id != id);
+
+            if (!string.IsNullOrEmpty(updatedSaha.SahaAdi) && regex.IsMatch(updatedSaha.SahaAdi) && !isExisting)
             {
-                TempData["ErrorMessage"] = "Saha adı formatı doğru değil.";
-                return RedirectToAction("Index");
+                saha.SahaAdi = updatedSaha.SahaAdi;
+                SaveSahalarToCsv();
+                TempData["SuccessMessage"] = "Saha başarıyla güncellendi!";
+            }
+            else
+            {
+                if (isExisting)
+                {
+                    TempData["ErrorMessage"] = "Bu saha adı kullanılmakta.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Saha adı yalnızca büyük harf ve boşluk içermelidir.";
+                }
             }
 
-            saha.SahaAdi = updatedSaha.SahaAdi;
-            SaveSahalarToCsv();
-            TempData["SuccessMessage"] = "Saha başarıyla güncellendi!";
             return RedirectToAction("Index");
         }
+
 
     }
 }

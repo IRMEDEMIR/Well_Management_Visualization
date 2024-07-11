@@ -5,14 +5,15 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
 
 
@@ -84,8 +85,17 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Create(string wellboreAdi)
         {
-            if (!string.IsNullOrEmpty(wellboreAdi))
+            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$"); 
+
+            if (!string.IsNullOrEmpty(wellboreAdi) && regex.IsMatch(wellboreAdi))
             {
+                bool isExisting = wellborelar.Any(w => w.WellboreAdi.Equals(wellboreAdi, StringComparison.OrdinalIgnoreCase));
+                if (isExisting)
+                {
+                    TempData["ErrorMessage"] = "Bu Wellbore adı zaten mevcut.";
+                    return RedirectToAction("Index");
+                }
+
                 var newWellbore = new WellboreModel
                 {
                     Id = wellborelar.Count > 0 ? wellborelar.Max(w => w.Id) + 1 : 1,
@@ -93,9 +103,18 @@ namespace ParsingProjectMVC.Controllers
                 };
                 wellborelar.Add(newWellbore);
                 SaveWellborelarToCsv();
+                TempData["SuccessMessage"] = "Wellbore başarıyla eklendi!";
+                return RedirectToAction("Index");
             }
-            return RedirectToAction("Index");
+            else
+            {
+                TempData["ErrorMessage"] = "Wellbore adı formatı yanlış.";
+                return RedirectToAction("Index");
+            }
         }
+
+
+
 
         [HttpPost]
         public IActionResult Delete(int id)
@@ -142,17 +161,34 @@ namespace ParsingProjectMVC.Controllers
         [HttpPost]
         public IActionResult Update(int id, WellboreModel updatedWellbore)
         {
-            var wellbore = wellborelar.FirstOrDefault(k => k.Id == id);
+            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?(\/[SMR]\d*)*$"); 
+            var wellbore = wellborelar.FirstOrDefault(w => w.Id == id);
+
             if (wellbore == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Güncellenecek Wellbore bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            if (!regex.IsMatch(updatedWellbore.WellboreAdi))
+            {
+                TempData["ErrorMessage"] = "Wellbore adı formatı yanlış.";
+                return RedirectToAction("Index");
+            }
+
+            bool isExisting = wellborelar.Any(w => w.WellboreAdi.Equals(updatedWellbore.WellboreAdi, StringComparison.OrdinalIgnoreCase) && w.Id != id);
+            if (isExisting)
+            {
+                TempData["ErrorMessage"] = "Bu Wellbore adı kullanılmakta.";
+                return RedirectToAction("Index");
             }
 
             wellbore.WellboreAdi = updatedWellbore.WellboreAdi;
             wellbore.Derinlik = updatedWellbore.Derinlik;
-
             SaveWellborelarToCsv();
+            TempData["SuccessMessage"] = "Wellbore başarıyla güncellendi!";
             return RedirectToAction("Index");
         }
+
     }
 }

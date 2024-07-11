@@ -12,8 +12,8 @@ namespace ParsingProjectMVC.Controllers
     public class KuyularController : Controller
     {
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
-        private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
         //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
 
         private List<KuyuModel> kuyular = new List<KuyuModel>();
@@ -149,21 +149,39 @@ namespace ParsingProjectMVC.Controllers
             return View(kuyu);
         }
 
-        // POST: KuyuGruplari/Update
         [HttpPost]
         public IActionResult Update(int id, KuyuModel updatedKuyu)
         {
+            var regex = new Regex(@"^[A-Z]+-\d+(\/K\d*)?$");  
             var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
+
             if (kuyu == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Güncellenecek Kuyu bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            if (!regex.IsMatch(updatedKuyu.KuyuAdi))
+            {
+                TempData["ErrorMessage"] = "Kuyu adı formatınız doğru değil.";
+                return RedirectToAction("Index");
+            }
+
+            bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(updatedKuyu.KuyuAdi, StringComparison.OrdinalIgnoreCase) && k.Id != id);
+
+            if (isExisting)
+            {
+                TempData["ErrorMessage"] = "Bu Kuyu adı kullanılmakta.";
+                return RedirectToAction("Index");
             }
 
             kuyu.KuyuAdi = updatedKuyu.KuyuAdi;
             kuyu.Enlem = updatedKuyu.Enlem;
             kuyu.Boylam = updatedKuyu.Boylam;
             SaveKuyularToCsv();
+            TempData["SuccessMessage"] = "Kuyu başarıyla güncellendi!";
             return RedirectToAction("Index");
         }
+
     }
 }

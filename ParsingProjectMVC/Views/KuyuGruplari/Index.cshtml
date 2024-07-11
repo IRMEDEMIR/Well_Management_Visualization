@@ -6,6 +6,8 @@
         <div class="d-flex justify-content-center mb-4">
             <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
                 <input type="text" name="kuyuGrubuAdi" class="form-control me-2" placeholder="Kuyu Grubu Adını Giriniz" required />
+                <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                 <button type="submit" class="btn btn-success">Ekle</button>
             </form>
         </div>
@@ -82,6 +84,8 @@
             <form asp-action="Update" asp-controller="KuyuGruplari" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="updateId" name="id" />
+                    <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
+                    <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                     <div class="form-group mb-3">
                         <label for="updateKuyuGrubuAdi" class="form-label">Kuyu Grubu Adı</label>
                         <input type="text" class="form-control" id="updateKuyuGrubuAdi" name="KuyuGrubuAdi" required>

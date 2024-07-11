@@ -1,76 +1,80 @@
 ﻿@model IEnumerable<ParsingProjectMVC.Models.KuyuModel>
 
-<div class="text-center">
-    <h1 class="display-4">Kuyular</h1>
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Kuyular</h1>
 
-    <div class="d-flex justify-content-center mb-3">
-        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
-            <input type="text" name="kuyuAdi" class="form-control me-2" placeholder="Kuyu Adını Giriniz" required />
-            <input type="text" name="enlem" class="form-control me-2" placeholder="Enlem Giriniz" required />
-            <input type="text" name="boylam" class="form-control me-2" placeholder="Boylam Giriniz" required />
-            <button type="submit" class="btn btn-success">Ekle</button>
-        </form>
-    </div>
-
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
+        <div class="d-flex justify-content-center mb-3">
+            <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
+                <input type="text" name="kuyuAdi" class="form-control me-2" placeholder="Kuyu Adını Giriniz" required />
+                <input type="text" name="enlem" class="form-control me-2" placeholder="Enlem Giriniz" required />
+                <input type="text" name="boylam" class="form-control me-2" placeholder="Boylam Giriniz" required />
+                <button type="submit" class="btn btn-success">Ekle</button>
+            </form>
         </div>
-    }
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
-
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Kuyu Adı</th>
-                <th>Enlem</th>
-                <th>Boylam</th>
-                <th>Güncelle/Sil</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var kuyu in Model)
-            {
-                <tr>
-                    <td>@kuyu.Id</td>
-                    <td>@kuyu.KuyuAdi</td>
-                    <td>@kuyu.Enlem</td>
-                    <td>@kuyu.Boylam</td>
-                    <td>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@kuyu.Id', '@kuyu.KuyuAdi', '@kuyu.Enlem', '@kuyu.Boylam')">Güncelle</button>
-                        <form asp-action="Delete" asp-controller="Kuyular" method="post" style="display:inline;">
-                            <input type="hidden" name="id" value="@kuyu.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">X</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
-
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
+        @if (TempData["SuccessMessage"] != null)
         {
-            <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
-                <a class="page-link" href="/Kuyular/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
-            </li>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         }
-    </ul>
-</nav>
 
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
 
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Kuyu Adı</th>
+                            <th>Enlem</th>
+                            <th>Boylam</th>
+                            <th>Güncelle/Sil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var kuyu in Model)
+                        {
+                            <tr>
+                                <td>@kuyu.Id</td>
+                                <td>@kuyu.KuyuAdi</td>
+                                <td>@kuyu.Enlem</td>
+                                <td>@kuyu.Boylam</td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@kuyu.Id', '@kuyu.KuyuAdi', '@kuyu.Enlem', '@kuyu.Boylam')">Güncelle</button>
+                                    <form asp-action="Delete" asp-controller="Kuyular" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@kuyu.Id" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
+                {
+                    <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
+                        <a class="page-link" href="/Kuyular/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
 
 <!-- Update Modal -->
 <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
@@ -83,17 +87,17 @@
             <form asp-action="Update" asp-controller="Kuyular" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="updateId" name="id" />
-                    <div class="form-group">
-                        <label for="updateKuyuAdi">Kuyu Adı</label>
-                        <input type="text" class="form-control" id="updateKuyuAdi" name="KuyuAdi" required />
+                    <div class="form-group mb-3">
+                        <label for="updateKuyuAdi" class="form-label">Kuyu Adı</label>
+                        <input type="text" class="form-control" id="updateKuyuAdi" name="KuyuAdi" required>
                     </div>
-                    <div class="form-group">
-                        <label for="updateEnlem">Enlem</label>
-                        <input type="text" class="form-control" id="updateEnlem" name="Enlem" required />
+                    <div class="form-group mb-3">
+                        <label for="updateEnlem" class="form-label">Enlem</label>
+                        <input type="text" class="form-control" id="updateEnlem" name="Enlem" required>
                     </div>
-                    <div class="form-group">
-                        <label for="updateBoylam">Boylam</label>
-                        <input type="text" class="form-control" id="updateBoylam" name="Boylam" required />
+                    <div class="form-group mb-3">
+                        <label for="updateBoylam" class="form-label">Boylam</label>
+                        <input type="text" class="form-control" id="updateBoylam" name="Boylam" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -105,7 +109,6 @@
     </div>
 </div>
 
-
 <script>
     function setUpdateFields(id, KuyuAdi, Enlem, Boylam) {
         document.getElementById('updateId').value = id;
@@ -114,4 +117,3 @@
         document.getElementById('updateBoylam').value = Boylam;
     }
 </script>
-

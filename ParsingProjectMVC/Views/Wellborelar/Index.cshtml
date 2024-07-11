@@ -1,71 +1,79 @@
 ﻿@model IEnumerable<ParsingProjectMVC.Models.WellboreModel>
 
-<div class="text-center">
-    <h1 class="display-4">Wellborelar</h1>
-    <div class="d-flex justify-content-center mb-3">
-        <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
-            <input type="text" name="wellboreAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
-            <input type="number" name="derinlik" class="form-control me-2" placeholder="Derinliği Giriniz" required />
-            <button type="submit" class="btn btn-success">Ekle</button>
-        </form>
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Wellborelar</h1>
+
+        <div class="d-flex justify-content-center mb-3">
+            <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
+                <input type="text" name="wellboreAdi" class="form-control me-2" placeholder="Wellbore Adını Giriniz" required />
+                <input type="number" name="derinlik" class="form-control me-2" placeholder="Derinliği Giriniz" required />
+                <button type="submit" class="btn btn-success">Ekle</button>
+            </form>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Wellbore Adı</th>
+                            <th>Derinlik(m)</th>
+                            <th>Güncelle/Sil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var wellbore in Model)
+                        {
+                            <tr>
+                                <td>@wellbore.Id</td>
+                                <td>@wellbore.WellboreAdi</td>
+                                <td>@wellbore.Derinlik</td>
+                                <td>
+                                    <a asp-action="Update" asp-route-id="@wellbore.Id" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@wellbore.Id', '@wellbore.WellboreAdi', '@wellbore.Derinlik')">Güncelle</a>
+                                    <form asp-action="Delete" asp-controller="Wellborelar" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@wellbore.Id" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
+                {
+                    <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
+                        <a class="page-link" href="/Wellborelar/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
     </div>
-
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Wellbore Adı</th>
-                <th>Derinlik(m)</th>
-                <th>Güncelle/Sil</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var wellbore in Model)
-            {
-                <tr>
-                    <td>@wellbore.Id</td>
-                    <td>@wellbore.WellboreAdi</td>
-                    <td>@wellbore.Derinlik</td>
-                    <td>
-                        <a asp-action="Update" asp-route-id="@wellbore.Id" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@wellbore.Id', '@wellbore.WellboreAdi', '@wellbore.Derinlik')">Güncelle</a>
-                        <form asp-action="Delete" asp-controller="Wellborelar" method="post" style="display:inline;">
-                            <input type="hidden" name="id" value="@wellbore.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">X</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
 </div>
 
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
-        {
-            <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
-                <a class="page-link" href="/Wellborelar/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
-            </li>
-        }
-    </ul>
-</nav>
-
-<!-- Update Kutusu -->
+<!-- Update Modal -->
 <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -76,13 +84,13 @@
             <form asp-action="Update" asp-controller="Wellborelar" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="updateId" name="id" />
-                    <div class="form-group">
-                        <label for="updateWellboreAdi">Wellbore Adı</label>
-                        <input type="text" class="form-control" id="updateWellboreAdi" name="WellboreAdi" required />
+                    <div class="form-group mb-3">
+                        <label for="updateWellboreAdi" class="form-label">Wellbore Adı</label>
+                        <input type="text" class="form-control" id="updateWellboreAdi" name="WellboreAdi" required>
                     </div>
-                    <div class="form-group">
-                        <label for="updateDerinlik">Derinlik</label>
-                        <input type="text" class="form-control" id="updateDerinlik" name="Derinlik" required />
+                    <div class="form-group mb-3">
+                        <label for="updateDerinlik" class="form-label">Derinlik(m)</label>
+                        <input type="number" class="form-control" id="updateDerinlik" name="Derinlik" required>
                     </div>
                 </div>
                 <div class="modal-footer">

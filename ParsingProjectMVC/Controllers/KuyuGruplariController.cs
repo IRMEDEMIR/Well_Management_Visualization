@@ -68,7 +68,7 @@ namespace ParsingProjectMVC.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(string kuyuGrubuAdi)
+        public IActionResult Create(string kuyuGrubuAdi, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z]+-\d+$");  
             bool isExisting = kuyuGruplari.Any(k => k.KuyuGrubuAdi.Equals(kuyuGrubuAdi, StringComparison.OrdinalIgnoreCase));
@@ -95,7 +95,7 @@ namespace ParsingProjectMVC.Controllers
                     TempData["ErrorMessage"] = "Kuyu Grubu adı formatınız doğru değil.";
                 }
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
 
@@ -140,7 +140,7 @@ namespace ParsingProjectMVC.Controllers
             return View(kuyuGrubu);
         }
         [HttpPost]
-        public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu)
+        public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z]+-\d+$");
             var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
@@ -148,7 +148,7 @@ namespace ParsingProjectMVC.Controllers
             if (kuyuGrubu == null)
             {
                 TempData["ErrorMessage"] = "Güncellenecek Kuyu Grubu bulunamadı.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             bool isExisting = kuyuGruplari.Any(kg => kg.KuyuGrubuAdi.Equals(updatedKuyuGrubu.KuyuGrubuAdi, StringComparison.OrdinalIgnoreCase) && kg.Id != id);
@@ -156,19 +156,19 @@ namespace ParsingProjectMVC.Controllers
             if (!regex.IsMatch(updatedKuyuGrubu.KuyuGrubuAdi))
             {
                 TempData["ErrorMessage"] = "Kuyu Grubu adı formatınız doğru değil.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             if (isExisting)
             {
                 TempData["ErrorMessage"] = "Bu Kuyu Grubu adı kullanılmakta.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
             SaveKuyuGruplariToCsv();
             TempData["SuccessMessage"] = "Kuyu Grubu başarıyla güncellendi!";
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
     }

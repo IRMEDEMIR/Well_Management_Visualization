@@ -1,10 +1,14 @@
-﻿namespace ParsingProjectMVC.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ParsingProjectMVC.Models
 {
     public class KuyuGrubuModel
     {
-        //Properties
-        public int Id { get; set; } 
+        [Key]
+        public int KuyuGrubuId { get; set; } 
         public string KuyuGrubuAdi { get; set; }
-        public SahaModel SahaAdi { get; set; }
+        [ForeignKey("SahaId")]
+        public SahaModel Saha { get; set; }
     }
 }

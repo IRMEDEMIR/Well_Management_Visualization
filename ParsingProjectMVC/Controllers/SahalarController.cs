@@ -14,15 +14,15 @@ namespace ParsingProjectMVC.Controllers
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
-        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
+        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Sahalar.csv";
 
-        private List<SahaModel> sahalar = new List<SahaModel>();
+        //private List<SahaModel> sahalar = new List<SahaModel>();
 
         public SahalarController()
         {
-            LoadSahalarFromCsv();
+            //LoadSahalarFromCsv();
         }
-
+        /*
         private void LoadSahalarFromCsv()
         {
             try
@@ -175,6 +175,6 @@ namespace ParsingProjectMVC.Controllers
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
-
+        */
     }
 }

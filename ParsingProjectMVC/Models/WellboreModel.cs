@@ -1,12 +1,16 @@
-﻿namespace ParsingProjectMVC.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ParsingProjectMVC.Models
 {
     public class WellboreModel
     {
+        [Key]
+        public int WellboreId { get; set; }
         public string WellboreAdi { get; set; }
-        public int Id { get; set; }
-        public string Derinlik { get; set; } 
-        public SahaModel SahaAdi { get; set; }
-        public KuyuModel KuyuAdi { get; set; }
-        public KuyuGrubuModel KuyuGrubuAdi { get; set; }
+        
+        public string Derinlik { get; set; }
+        [ForeignKey("KuyuId")]
+        public KuyuModel Kuyu { get; set; }
     }
 }

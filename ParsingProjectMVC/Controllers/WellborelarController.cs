@@ -14,16 +14,16 @@ namespace ParsingProjectMVC.Controllers
         //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv"; // CSV dosyasının yolunu buraya ekleyin
         //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
         //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
-        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
+        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Wellborelar.csv";
 
 
-        private List<WellboreModel> wellborelar = new List<WellboreModel>();
+        //private List<WellboreModel> wellborelar = new List<WellboreModel>();
 
         public WellborelarController()
         {
-            LoadWellborelarFromCsv();
+            //LoadWellborelarFromCsv();
         }
-
+        /*
         private void LoadWellborelarFromCsv()
         {
             try
@@ -192,6 +192,6 @@ namespace ParsingProjectMVC.Controllers
             TempData["SuccessMessage"] = "Wellbore başarıyla güncellendi!";
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
-
+        */
     }
 }

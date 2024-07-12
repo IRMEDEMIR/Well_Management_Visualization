@@ -11,8 +11,8 @@ using ParsingProjectMVC.Services;
 namespace ParsingProjectMVC.Migrations
 {
     [DbContext(typeof(ParsingDbContext))]
-    [Migration("20240712125939_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20240712133918_IsimDegisiklikleri")]
+    partial class IsimDegisiklikleri
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,11 +26,11 @@ namespace ParsingProjectMVC.Migrations
 
             modelBuilder.Entity("ParsingProjectMVC.Models.KuyuGrubuModel", b =>
                 {
-                    b.Property<int>("KuyuGrubuId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KuyuGrubuId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("KuyuGrubuAdi")
                         .IsRequired()
@@ -39,20 +39,20 @@ namespace ParsingProjectMVC.Migrations
                     b.Property<int>("SahaId")
                         .HasColumnType("int");
 
-                    b.HasKey("KuyuGrubuId");
+                    b.HasKey("Id");
 
                     b.HasIndex("SahaId");
 
-                    b.ToTable("KuyuGruplari");
+                    b.ToTable("KuyuGrubu");
                 });
 
             modelBuilder.Entity("ParsingProjectMVC.Models.KuyuModel", b =>
                 {
-                    b.Property<int>("KuyuId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KuyuId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Boylam")
                         .IsRequired()
@@ -69,37 +69,37 @@ namespace ParsingProjectMVC.Migrations
                     b.Property<int>("KuyuGrubuId")
                         .HasColumnType("int");
 
-                    b.HasKey("KuyuId");
+                    b.HasKey("Id");
 
                     b.HasIndex("KuyuGrubuId");
 
-                    b.ToTable("Kuyular");
+                    b.ToTable("Kuyu");
                 });
 
             modelBuilder.Entity("ParsingProjectMVC.Models.SahaModel", b =>
                 {
-                    b.Property<int>("SahaId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SahaId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("SahaAdi")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("SahaId");
+                    b.HasKey("Id");
 
-                    b.ToTable("Sahalar");
+                    b.ToTable("Saha");
                 });
 
             modelBuilder.Entity("ParsingProjectMVC.Models.WellboreModel", b =>
                 {
-                    b.Property<int>("WellboreId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WellboreId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Derinlik")
                         .IsRequired()
@@ -112,11 +112,11 @@ namespace ParsingProjectMVC.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("WellboreId");
+                    b.HasKey("Id");
 
                     b.HasIndex("KuyuId");
 
-                    b.ToTable("Wellborelar");
+                    b.ToTable("Wellbore");
                 });
 
             modelBuilder.Entity("ParsingProjectMVC.Models.KuyuGrubuModel", b =>

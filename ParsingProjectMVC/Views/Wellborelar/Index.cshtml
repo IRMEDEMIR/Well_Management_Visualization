@@ -45,13 +45,13 @@
                         @foreach (var wellbore in Model)
                         {
                             <tr>
-                                <td>@wellbore.WellboreId</td>
+                                <td>@wellbore.Id</td>
                                 <td>@wellbore.WellboreAdi</td>
                                 <td>@wellbore.Derinlik</td>
                                 <td>
-                                    <a asp-action="Update" asp-route-id="@wellbore.WellboreId" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@wellbore.WellboreId', '@wellbore.WellboreAdi', '@wellbore.Derinlik')">Güncelle</a>
+                                    <a asp-action="Update" asp-route-id="@wellbore.Id" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@wellbore.Id', '@wellbore.WellboreAdi', '@wellbore.Derinlik')">Güncelle</a>
                                     <form asp-action="Delete" asp-controller="Wellborelar" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="@wellbore.WellboreId" />
+                                        <input type="hidden" name="id" value="@wellbore.Id" />
                                         <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
                                         <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                                         <button type="submit" class="btn btn-danger btn-sm">Sil</button>

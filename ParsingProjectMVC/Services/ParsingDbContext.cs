@@ -10,9 +10,9 @@ namespace ParsingProjectMVC.Services
         
         }
 
-        public DbSet<SahaModel> Sahalar { get; set; }  
-        public DbSet<KuyuGrubuModel> KuyuGruplari { get; set; }
-        public DbSet<KuyuModel> Kuyular { get; set; } 
-        public DbSet<WellboreModel> Wellborelar { get; set; }
+        public DbSet<SahaModel> Saha { get; set; }  
+        public DbSet<KuyuGrubuModel> KuyuGrubu { get; set; }
+        public DbSet<KuyuModel> Kuyu { get; set; } 
+        public DbSet<WellboreModel> Wellbore { get; set; }
     }
 }

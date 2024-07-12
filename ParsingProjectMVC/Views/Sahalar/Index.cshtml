@@ -42,12 +42,12 @@
                         @foreach (var saha in Model)
                         {
                             <tr>
-                                <td>@saha.SahaId</td>
+                                <td>@saha.Id</td>
                                 <td>@saha.SahaAdi</td>
                                 <td>
-                                    <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@saha.SahaId', '@saha.SahaAdi')">Güncelle</a>
+                                    <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@saha.Id', '@saha.SahaAdi')">Güncelle</a>
                                     <form asp-action="Delete" asp-controller="Sahalar" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="@saha.SahaId" />
+                                        <input type="hidden" name="id" value="@saha.Id" />
                                         <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
                                         <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
                                         <button type="submit" class="btn btn-danger btn-sm ms-2">Sil</button>

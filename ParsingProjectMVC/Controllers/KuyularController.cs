@@ -1,101 +1,61 @@
-﻿using CsvHelper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ParsingProjectMVC.Models;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class KuyularController : Controller
     {
-        //private readonly string _filePath = "C:\\Users\\WİN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasının yolunu buraya ekleyin
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        private readonly Services.ParsingDbContext _context;
 
-        //private List<KuyuModel> kuyular = new List<KuyuModel>();
-
-        public KuyularController()
+        public KuyularController(Services.ParsingDbContext context)
         {
-            //LoadKuyularFromCsv();
-        }
-        /*
-        private void LoadKuyularFromCsv()
-        {
-            try
-            {
-                using (var reader = new StreamReader(_filePath))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-                {
-                    var records = csv.GetRecords<dynamic>().ToList();
-                    int idCounter = 1;
-                    foreach (var record in records)
-                    {
-                        kuyular.Add(new KuyuModel
-                        {
-                            Id = idCounter++,
-                            KuyuAdi = record.KuyuAdi,
-                            Enlem = record.Enlem,
-                            Boylam = record.Boylam,
-                            KuyuGrubuAdi = null,
-                            SahaAdi = null
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Error handling
-                Console.WriteLine($"Error reading CSV file: {ex.Message}");
-            }
+            _context = context;
         }
 
-
-        private void SaveKuyularToCsv()
+        // Listeleme işlemi
+        [HttpGet]
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 50)
         {
-            try
-            {
-                using (var writer = new StreamWriter(_filePath))
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-                {
-                    csv.WriteRecords(kuyular.Select(k => new
-                    {
-                        k.KuyuAdi,
-                        k.Enlem,
-                        k.Boylam
-                    }));
-                }
-            }
-            catch (Exception ex)
-            {
-                // Hata yönetimi
-                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
-            }
+            var pagedKuyular = await _context.Kuyu
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalItems = await _context.Kuyu.CountAsync();
+
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+
+            return View(pagedKuyular);
         }
 
+        // Yeni kuyu ekleme işlemi
         [HttpPost]
-        public IActionResult Create(string kuyuAdi, string enlem, string boylam, int pageNumber = 1, int pageSize = 50)
+        public async Task<IActionResult> Create(string kuyuAdi, string enlem, string boylam, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?$");
 
+            var kuyular = await _context.Kuyu.ToListAsync();
             bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(kuyuAdi, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(kuyuAdi) && regex.IsMatch(kuyuAdi) && !isExisting && double.TryParse(enlem, out double parsedEnlem) && double.TryParse(boylam, out double parsedBoylam))
             {
                 var newKuyu = new KuyuModel
                 {
-                    Id = kuyular.Count > 0 ? kuyular.Max(k => k.Id) + 1 : 1,
                     KuyuAdi = kuyuAdi,
-                    Enlem = parsedEnlem.ToString(), 
-                    Boylam = parsedBoylam.ToString() 
+                    Enlem = parsedEnlem.ToString(),
+                    Boylam = parsedBoylam.ToString()
                 };
-                kuyular.Add(newKuyu);
-                SaveKuyularToCsv();
+                _context.Kuyu.Add(newKuyu);
+                await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Kuyu başarıyla eklendi!";
+                TempData["SuccessMessage"] = "Kuyu başarıyla eklendi!";
                 return RedirectToAction("Index", new { pageNumber, pageSize });
             }
             else
@@ -108,46 +68,34 @@ namespace ParsingProjectMVC.Controllers
                 {
                     TempData["ErrorMessage"] = "Kuyu adı veya koordinat formatınız doğru değil.";
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
         }
 
-
-
+        // Kuyu silme işlemi
         [HttpPost]
-        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
+        public async Task<IActionResult> Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
-            var kuyuToDelete = kuyular.FirstOrDefault(k => k.Id == id);
-            if (kuyuToDelete != null)
+            var kuyu = await _context.Kuyu.FindAsync(id);
+            if (kuyu != null)
             {
-                kuyular.Remove(kuyuToDelete);
-                SaveKuyularToCsv();
+                _context.Kuyu.Remove(kuyu);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Kuyu başarıyla silindi!";
             }
+            else
+            {
+                TempData["ErrorMessage"] = "Kuyu bulunamadı.";
+            }
+
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
+        // Kuyu güncelleme sayfasını getir
         [HttpGet]
-        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
+        public async Task<IActionResult> Update(int id)
         {
-            var pagedKuyular = kuyular
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var totalItems = kuyular.Count;
-
-            ViewBag.PageNumber = pageNumber;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalItems = totalItems;
-
-            return View(pagedKuyular);
-        }
-
-
-        [HttpGet]
-        public IActionResult Update(int id)
-        {
-            var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
+            var kuyu = await _context.Kuyu.FindAsync(id);
             if (kuyu == null)
             {
                 return NotFound();
@@ -155,13 +103,13 @@ namespace ParsingProjectMVC.Controllers
             return View(kuyu);
         }
 
+        // Kuyu güncelleme işlemi
         [HttpPost]
-        public IActionResult Update(int id, KuyuModel updatedKuyu, int pageNumber = 1, int pageSize = 50)
+        public async Task<IActionResult> Update(int id, KuyuModel updatedKuyu, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?$");
 
-
-            var kuyu = kuyular.FirstOrDefault(k => k.Id == id);
+            var kuyu = await _context.Kuyu.FindAsync(id);
 
             if (kuyu == null)
             {
@@ -175,6 +123,7 @@ namespace ParsingProjectMVC.Controllers
                 return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
+            var kuyular = await _context.Kuyu.ToListAsync();
             bool isExisting = kuyular.Any(k => k.KuyuAdi.Equals(updatedKuyu.KuyuAdi, StringComparison.OrdinalIgnoreCase) && k.Id != id);
 
             if (isExisting)
@@ -186,10 +135,9 @@ namespace ParsingProjectMVC.Controllers
             kuyu.KuyuAdi = updatedKuyu.KuyuAdi;
             kuyu.Enlem = updatedKuyu.Enlem;
             kuyu.Boylam = updatedKuyu.Boylam;
-            SaveKuyularToCsv();
+            await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Kuyu başarıyla güncellendi!";
             return RedirectToAction("Index", new { pageNumber, pageSize });
-        }*/
-
+        }
     }
 }

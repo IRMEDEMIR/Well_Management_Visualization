@@ -2,55 +2,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ParsingProjectMVC.Models;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using CsvHelper;
-using CsvHelper.Configuration;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        //private readonly string _filePath = "C:\\Users\\WÝN10\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv"; // CSV dosyasýnýn yolunu buraya ekleyin
-        //private readonly string _filePath = "C:\\Users\\demir\\OneDrive\\Desktop\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        //private readonly string _filePath = "C:\\Users\\Pc\\OneDrive\\Masaüstü\\tpao_list\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
-        private readonly string _filePath = "C:\\Users\\Asus\\Desktop\\TPAO\\Parsing_Project\\TPAO_01\\output\\Kuyular.csv";
+        private readonly Services.ParsingDbContext _context;
 
-        private List<KuyuModel> kuyular = new List<KuyuModel>();
-
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, Services.ParsingDbContext context)
         {
             _logger = logger;
-            LoadKuyularFromCsv();
+            _context = context;
         }
 
-        private void LoadKuyularFromCsv()
+        public async Task<IActionResult> Index()
         {
-            try
-            {
-                using (var reader = new StreamReader(_filePath))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-                {
-                    var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-                    {
-                        HeaderValidated = null,  // Baþlýk doðrulamasýný devre dýþý býrak
-                        MissingFieldFound = null // Eksik alan bulunduðunda hata fýrlatmayý devre dýþý býrak
-                    };
-                    csv.Context.RegisterClassMap<KuyuModelMap>();
-                    kuyular = csv.GetRecords<KuyuModel>().ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error reading CSV file: {ex.Message}");
-            }
-        }
-
-        public IActionResult Index()
-        {
+            var kuyular = await _context.Kuyu.ToListAsync();
             return View(kuyular);
         }
 
@@ -65,14 +36,6 @@ namespace ParsingProjectMVC.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
-
-    public sealed class KuyuModelMap : ClassMap<KuyuModel>
-    {
-        public KuyuModelMap()
-        {
-            Map(m => m.KuyuAdi).Name("KuyuAdi");
-            Map(m => m.Enlem).Name("Enlem").Optional();
-            Map(m => m.Boylam).Name("Boylam").Optional();
-        }
-    }
 }
+
+//kuyuya basýnca detayýný gör deyince grafiði göster

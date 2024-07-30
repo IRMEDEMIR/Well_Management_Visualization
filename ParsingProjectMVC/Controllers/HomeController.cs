@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using ParsingProjectMVC.Models;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ParsingProjectMVC.Controllers
 {
@@ -30,6 +33,26 @@ namespace ParsingProjectMVC.Controllers
             return View();
         }
 
+        public async Task<IActionResult> KuyuDetail(int id)
+        {
+            // JSON dosyasýnýn yolunu belirleyin
+            var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "TestWellDirectionSurvey.json");
+
+            // JSON dosyasýný okuyun
+            var jsonString = System.IO.File.ReadAllText(jsonFilePath);
+            var kuyuData = JsonSerializer.Deserialize<KuyuJsonModel>(jsonString);
+
+            // Veriyi kontrol edin
+            if (kuyuData == null)
+            {
+                return NotFound();
+            }
+
+            // View'a veri gönder
+            return View(kuyuData);
+        }
+
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -37,5 +60,3 @@ namespace ParsingProjectMVC.Controllers
         }
     }
 }
-
-//kuyuya basýnca detayýný gör deyince grafiði göster

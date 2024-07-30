@@ -9,9 +9,14 @@
 </div>
 
 <div id="map" style="height: 600px;"></div>
+<div id="myDiv" style="width: 100%; height: 600px;"></div>
 
+<!-- Leaflet CSS ve JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!-- Plotly JS -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <script>
     var map = L.map('map').setView([38.963745, 35.243322], 6); // Türkiye'nin merkezi
@@ -24,7 +29,7 @@
     {
         <text>
             L.marker([@kuyu.Enlem, @kuyu.Boylam]).addTo(map)
-                .bindPopup('Kuyu Adı: @kuyu.KuyuAdi <br> Enlem: @kuyu.Enlem <br> Boylam: @kuyu.Boylam');
+                .bindPopup('Kuyu Adı: @kuyu.KuyuAdi <br> Enlem: @kuyu.Enlem <br> Boylam: @kuyu.Boylam <br><a href="/Home/KuyuDetail">3D Görselleştirme</a>');
         </text>
     }
 </script>

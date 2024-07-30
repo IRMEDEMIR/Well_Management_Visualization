@@ -1,0 +1,34 @@
+﻿@{
+    ViewData["Title"] = "Kuyu Detayı";
+}
+
+<h2>Kuyu Detayı - 3D Görselleştirme</h2>
+
+<div id="myDiv" style="width: 100%; height: 600px;"></div>
+
+<!-- Plotly JS -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+    // Sabit ve basit verilerle 3D grafik çizimi
+    var x = [1, 2, 3, 4, 5];
+    var y = [1, 2, 4, 8, 16];
+    var z = [10, 15, 13, 17, 10];
+
+    Plotly.newPlot('myDiv', [{
+        type: 'scatter3d',
+        mode: 'lines',
+        x: x,
+        y: y,
+        z: z,
+        opacity: 1,
+        line: {
+            width: 6,
+            color: 'blue',
+            reversescale: false
+        }
+    }], {
+        height: 640,
+        title: 'Kuyu 3D Görselleştirme'
+    });
+</script>

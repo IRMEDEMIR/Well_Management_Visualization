@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using ParsingProjectMVC.Models;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ParsingProjectMVC.Controllers
 {
@@ -48,7 +46,9 @@ namespace ParsingProjectMVC.Controllers
                 return NotFound();
             }
 
-            // View'a veri gönder
+            // JSON verisini ViewBag ile gönder
+            ViewBag.KuyuData = jsonString;
+
             return View(kuyuData);
         }
 

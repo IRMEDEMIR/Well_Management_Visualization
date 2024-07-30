@@ -1,8 +1,7 @@
 {
 	"wellName": "TestWell",
 	"depthUnit": "ms",
-	"wellHeadPos": [ 651395.49, 3893510.71, 67.7, 67.7 ],
-	               //X   //Y    //Z
+	"wellHeadPos": [ 651395.49, 3893510.71, 67.7, 67.7 ],            
 	"pathHeader": ["DX", "DY", "TVD", "TWT", "MD"],
 	"path": [
 		[0, 0, 0, -65.91135200000001, 0],

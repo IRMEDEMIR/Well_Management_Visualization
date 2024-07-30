@@ -7,7 +7,7 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-    <div id="well-3d-plot" style="width: 100%; height: 600px;"></div>
+    <div id="well-3d-plot" style="width: 700px; height: 600px;"></div>
     <script>
         // JSON dosyasını yükleyip işleyen fonksiyon
         async function loadAndPlotData() {
@@ -19,10 +19,25 @@
                 // Son iki terimi çıkarıyoruz
                 const path = wellData.path.slice(0, -2);
 
-                // Veriyi 3D grafiğe dönüştürüyoruz
-                const x = path.map(point => point[0]);
-                const y = path.map(point => point[1]);
-                const z = path.map(point => point[2]);
+                // Hesaplama için başlangıç değerlerini ayarlıyoruz
+                let dxTotal = 0;
+                let dyTotal = 0;
+                const x = [];
+                const y = [];
+                const z = [];
+
+                for (const point of path) {
+                    const [dx, dy, dz] = point;
+
+                    dxTotal += dx;
+                    dyTotal += dy;
+
+                    const dzNegative = -dz;
+
+                    x.push(dxTotal);
+                    y.push(dyTotal);
+                    z.push(dzNegative); // TVD etkilenmeyecek, olduğu gibi kullanıyoruz
+                }
 
                 const trace = {
                     x: x,

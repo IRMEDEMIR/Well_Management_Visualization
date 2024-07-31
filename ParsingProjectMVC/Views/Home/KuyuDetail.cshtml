@@ -5,69 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Well Visualization</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
     <div id="well-3d-plot" style="width: 700px; height: 600px;"></div>
     <script>
-        // JSON dosyasını yükleyip işleyen fonksiyon
-        async function loadAndPlotData() {
+        // CSV dosyasını yükleyip işleyen fonksiyon
+        async function loadAndProcessCSV() {
             try {
-                // JSON dosyasının URL'sini belirtin
-                const response = await fetch('/data/TestWellDirectionSurvey.json');
-                const wellData = await response.json();
+                console.log("Fetching CSV file...");
 
-                // Son iki terimi çıkarıyoruz
-                const path = wellData.path.slice(0, -2);
-
-                // Hesaplama için başlangıç değerlerini ayarlıyoruz
-                let dxTotal = 0;
-                let dyTotal = 0;
-                const x = [];
-                const y = [];
-                const z = [];
-
-                for (const point of path) {
-                    const [dx, dy, dz] = point;
-
-                    dxTotal += dx;
-                    dyTotal += dy;
-
-                    const dzNegative = -dz;
-
-                    x.push(dxTotal);
-                    y.push(dyTotal);
-                    z.push(dzNegative); // TVD etkilenmeyecek, olduğu gibi kullanıyoruz
+                // CSV dosyasının URL'sini belirtin (wwwroot/data içindeki dosya)
+                const response = await fetch('/data/WellboreGeometrisi.csv');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
+                const csvText = await response.text();
 
-                const trace = {
-                    x: x,
-                    y: y,
-                    z: z,
-                    mode: 'lines',
-                    type: 'scatter3d',
-                    line: {
-                        color: 'blue',
-                        width: 6
+                console.log("CSV file fetched, processing...");
+
+                // PapaParse kullanarak CSV dosyasını ayrıştırma
+                Papa.parse(csvText, {
+                    header: false, // İlk satırı başlık olarak almayacağız
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        console.log("CSV parsing complete.");
+                        const data = results.data;
+
+                        // CSV içeriğini kontrol edin
+                        console.log("CSV Data:", data);
+
+                        // "Wellpath Report" satırını bulup ondan sonraki verileri al
+                        const wellpathStartIndex = data.findIndex(row => row.includes('Wellpath Report'));
+                        if (wellpathStartIndex === -1) {
+                            console.error("Wellpath Report not found in CSV.");
+                            return;
+                        }
+
+                        console.log("Wellpath Report found at index:", wellpathStartIndex);
+
+                        const headers = data[wellpathStartIndex + 1]; // Sütun başlıkları
+                        const wellpathData = data.slice(wellpathStartIndex + 2); // Veriler
+
+                        console.log("Headers:", headers);
+                        console.log("Wellpath data:", wellpathData);
+
+                        // Belirli sütunları seç ve x, y, z koordinatlarını hesapla
+                        const x = [];
+                        const y = [];
+                        const z = [];
+
+                        wellpathData.forEach(row => {
+                            const verticalSection = parseFloat(row[headers.indexOf('Vertical Section[m]')]);
+                            const aziDeg = parseFloat(row[headers.indexOf('Azi[deg]')]);
+                            const aziRad = aziDeg * (Math.PI / 180); // Dereceden radyana çevirme
+                            const tvd = parseFloat(row[headers.indexOf('TVD[m]')]);
+
+                            x.push(verticalSection * Math.cos(aziRad));
+                            y.push(verticalSection * Math.sin(aziRad));
+                            z.push(tvd);
+                        });
+
+                        console.log("x coordinates:", x);
+                        console.log("y coordinates:", y);
+                        console.log("z coordinates:", z);
+
+                        // 3D grafik çizimi
+                        const trace = {
+                            x: x,
+                            y: y,
+                            z: z,
+                            mode: 'lines',
+                            type: 'scatter3d',
+                            line: {
+                                color: 'blue',
+                                width: 6
+                            }
+                        };
+
+                        // Eksen aralıklarını belirlemek için min ve max değerlerini bulalım
+                        const xMin = Math.min(...x);
+                        const xMax = Math.max(...x);
+                        const yMin = Math.min(...y);
+                        const yMax = Math.max(...y);
+                        const zMin = Math.min(...z);
+                        const zMax = Math.max(...z);
+
+                        const layout = {
+                            scene: {
+                                xaxis: { title: 'X', range: [xMin, xMax] },
+                                yaxis: { title: 'Y', range: [yMin, yMax] },
+                                zaxis: { title: 'TVD', range: [zMin, zMax] }
+                            },
+                            title: '3D Wellbore Path'
+                        };
+
+                        console.log("Plotting data...");
+                        Plotly.newPlot('well-3d-plot', [trace], layout);
+                        console.log("Plotting complete.");
                     }
-                };
-
-                const layout = {
-                    scene: {
-                        xaxis: { title: 'DX' },
-                        yaxis: { title: 'DY' },
-                        zaxis: { title: 'TVD' }
-                    },
-                    title: '3D Well Path'
-                };
-
-                Plotly.newPlot('well-3d-plot', [trace], layout);
+                });
             } catch (error) {
-                console.error('Error loading or plotting data:', error);
+                console.error('Error loading or processing CSV data:', error);
             }
         }
 
-        // Fonksiyonu çağırarak veriyi yükleyip grafiği oluşturuyoruz
-        loadAndPlotData();
+        // Fonksiyonu çağırarak CSV dosyasını yükleyip işliyoruz
+        loadAndProcessCSV();
+
     </script>
 </body>
 </html>

@@ -1,10 +1,10 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ParsingProjectMVC.Models;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ParsingProjectMVC.Controllers
@@ -31,27 +31,16 @@ namespace ParsingProjectMVC.Controllers
             return View();
         }
 
-        public async Task<IActionResult> KuyuDetail(int id)
+        public IActionResult KuyuDetail()
         {
-            // JSON dosyasýnýn yolunu belirleyin
-            var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "TestWellDirectionSurvey.json");
+            // CSV dosyasýnýn URL'sini belirleyin
+            var csvFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "WellboreGeometrisi.csv");
 
-            // JSON dosyasýný okuyun
-            var jsonString = System.IO.File.ReadAllText(jsonFilePath);
-            var kuyuData = JsonSerializer.Deserialize<KuyuJsonModel>(jsonString);
+            // CSV dosyasýnýn yolu ve adý view'a ViewBag ile gönderildi
+            ViewBag.CsvFilePath = csvFilePath;
 
-            // Veriyi kontrol edin
-            if (kuyuData == null)
-            {
-                return NotFound();
-            }
-
-            // JSON verisini ViewBag ile gönder
-            ViewBag.KuyuData = jsonString;
-
-            return View(kuyuData);
+            return View();
         }
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

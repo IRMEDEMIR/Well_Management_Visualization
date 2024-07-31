@@ -7,8 +7,21 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
+<style>
+    #drop-zone {
+        border: 2px dashed #007bff;
+        border-radius: 5px;
+        padding: 20px;
+        text-align: center;
+        margin: 20px;
+        font-size: 18px;
+        color: #007bff;
+    }
+</style>
 <body>
+    <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
     <div id="well-3d-plot" style="width: 700px; height: 600px;"></div>
+    <input type="file" id="file-input" style="display:none;" />
     <div id="values" style="margin-top: 20px;">
         <h3>Computed Values:</h3>
         <p id="xMin"></p>
@@ -21,16 +34,54 @@
         <p id="zRange"></p>
     </div>
     <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        // Dosya sürüklendiğinde ve bırakıldığında
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.style.backgroundColor = '#e1e1e1';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.backgroundColor = '';
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.style.backgroundColor = '';
+            const files = event.dataTransfer.files;
+            if (files.length) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            const files = fileInput.files;
+            if (files.length) {
+                handleFile(files[0]);
+            }
+        });
+
+    
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Dosya işleme
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const csvText = event.target.result;
+                processCSV(csvText);
+            };
+            reader.readAsText(file);
+        }
+
         // CSV dosyasını yükleyip işleyen fonksiyon
-        async function loadAndProcessCSV() {
+        function processCSV(csvText) {
             try {
-                console.log("Fetching CSV file...");
-
-                // CSV dosyasının URL'sini belirtin
-                const response = await fetch('/data/WellboreGeometrisi.csv');
-                const csvText = await response.text();
-
-                console.log("CSV file fetched, processing...");
+                console.log("Parsing CSV file...");
 
                 // PapaParse kullanarak CSV dosyasını ayrıştırma
                 Papa.parse(csvText, {
@@ -149,13 +200,11 @@
 
                         const layout = {
                             scene: {
-
-
                                 xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
                                 yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
-                                zaxis: { title: 'Z', range: [zRange, 0] },
+                                zaxis: { title: 'Z', range: [zRange,0] }
                             },
-                            title: '3D sWell Path'
+                            title: '3D Well Path'
                         };
 
                         console.log("Plotting data...");
@@ -167,9 +216,6 @@
                 console.error('Error loading or processing CSV data:', error);
             }
         }
-
-        // Fonksiyonu çağırarak CSV dosyasını yükleyip işliyoruz
-        loadAndProcessCSV();
     </script>
 </body>
 </html>

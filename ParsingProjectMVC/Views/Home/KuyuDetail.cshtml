@@ -9,17 +9,25 @@
 </head>
 <body>
     <div id="well-3d-plot" style="width: 700px; height: 600px;"></div>
+    <div id="values" style="margin-top: 20px;">
+        <h3>Computed Values:</h3>
+        <p id="xMin"></p>
+        <p id="xMax"></p>
+        <p id="yMin"></p>
+        <p id="yMax"></p>
+        <p id="zMin"></p>
+        <p id="zMax"></p>
+        <p id="maxXYRange"></p>
+        <p id="zRange"></p>
+    </div>
     <script>
         // CSV dosyasını yükleyip işleyen fonksiyon
         async function loadAndProcessCSV() {
             try {
                 console.log("Fetching CSV file...");
 
-                // CSV dosyasının URL'sini belirtin (wwwroot/data içindeki dosya)
+                // CSV dosyasının URL'sini belirtin
                 const response = await fetch('/data/WellboreGeometrisi.csv');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
                 const csvText = await response.text();
 
                 console.log("CSV file fetched, processing...");
@@ -31,9 +39,6 @@
                     complete: function (results) {
                         console.log("CSV parsing complete.");
                         const data = results.data;
-
-                        // CSV içeriğini kontrol edin
-                        console.log("CSV Data:", data);
 
                         // "Wellpath Report" satırını bulup ondan sonraki verileri al
                         const wellpathStartIndex = data.findIndex(row => row.includes('Wellpath Report'));
@@ -55,14 +60,41 @@
                         const y = [];
                         const z = [];
 
-                        wellpathData.forEach(row => {
-                            const verticalSection = parseFloat(row[headers.indexOf('Vertical Section[m]')]);
-                            const aziDeg = parseFloat(row[headers.indexOf('Azi[deg]')]);
-                            const aziRad = aziDeg * (Math.PI / 180); // Dereceden radyana çevirme
-                            const tvd = parseFloat(row[headers.indexOf('TVD[m]')]);
+                        let previousX = 0;
+                        let previousY = 0;
 
-                            x.push(verticalSection * Math.cos(aziRad));
-                            y.push(verticalSection * Math.sin(aziRad));
+                        wellpathData.forEach(row => {
+                            const verticalSectionStr = row[headers.indexOf('Vertical Section[m]')];
+                            const aziDegStr = row[headers.indexOf('Azi[deg]')];
+                            const tvdStr = row[headers.indexOf('TVD[m]')];
+
+                            // Verileri kontrol et ve dönüştür
+                            if (!verticalSectionStr || !aziDegStr || !tvdStr) {
+                                console.error("Missing data in row:", row);
+                                return;
+                            }
+
+                            const verticalSection = parseFloat(verticalSectionStr.replace(',', '.'));
+                            const aziDeg = parseFloat(aziDegStr.replace(',', '.'));
+                            const tvd = parseFloat(tvdStr.replace(',', '.'));
+
+                            // Dönüşümlerin geçerli olup olmadığını kontrol et
+                            if (isNaN(verticalSection) || isNaN(aziDeg) || isNaN(tvd)) {
+                                console.error(`Invalid data: Vertical Section = ${verticalSection}, Azi = ${aziDeg}, TVD = ${tvd}`);
+                                return;
+                            }
+
+                            const aziRad = aziDeg * (Math.PI / 180); // Dereceden radyana çevirme
+
+                            if (aziDeg === 0 && x.length > 0 && y.length > 0) {
+                                x.push(previousX);
+                                y.push(previousY);
+                            } else {
+                                previousX = verticalSection * Math.sin(aziRad);
+                                previousY = verticalSection * Math.cos(aziRad);
+                                x.push(previousX);
+                                y.push(previousY);
+                            }
                             z.push(tvd);
                         });
 
@@ -83,7 +115,7 @@
                             }
                         };
 
-                        // Eksen aralıklarını belirlemek için min ve max değerlerini bulalım
+                        // Eksen aralıklarını belirlemek için min ve max değerleri
                         const xMin = Math.min(...x);
                         const xMax = Math.max(...x);
                         const yMin = Math.min(...y);
@@ -91,13 +123,39 @@
                         const zMin = Math.min(...z);
                         const zMax = Math.max(...z);
 
+                        // X ve Y ekseni aralıklarını ayarlamak için maksimum değeri belirleyelim
+                        const maxXYRange = Math.max(Math.abs(xMin), Math.abs(xMax), Math.abs(yMin), Math.abs(yMax)) * 2;
+                        const zRange = zMax * 1.1;
+
+                        // Computed values, log them to console
+                        console.log("xMin:", xMin);
+                        console.log("xMax:", xMax);
+                        console.log("yMin:", yMin);
+                        console.log("yMax:", yMax);
+                        console.log("zMin:", zMin);
+                        console.log("zMax:", zMax);
+                        console.log("maxXYRange:", maxXYRange);
+                        console.log("zRange:", zRange);
+
+                        // Display the computed values on the webpage
+                        document.getElementById('xMin').textContent = `xMin: ${xMin}`;
+                        document.getElementById('xMax').textContent = `xMax: ${xMax}`;
+                        document.getElementById('yMin').textContent = `yMin: ${yMin}`;
+                        document.getElementById('yMax').textContent = `yMax: ${yMax}`;
+                        document.getElementById('zMin').textContent = `zMin: ${zMin}`;
+                        document.getElementById('zMax').textContent = `zMax: ${zMax}`;
+                        document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
+                        document.getElementById('zRange').textContent = `zRange: ${zRange}`;
+
                         const layout = {
                             scene: {
-                                xaxis: { title: 'X', range: [xMin, xMax] },
-                                yaxis: { title: 'Y', range: [yMin, yMax] },
-                                zaxis: { title: 'TVD', range: [zMin, zMax] }
+
+
+                                xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
+                                yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
+                                zaxis: { title: 'Z', range: [zRange, 0] },
                             },
-                            title: '3D Wellbore Path'
+                            title: '3D sWell Path'
                         };
 
                         console.log("Plotting data...");
@@ -112,7 +170,6 @@
 
         // Fonksiyonu çağırarak CSV dosyasını yükleyip işliyoruz
         loadAndProcessCSV();
-
     </script>
 </body>
 </html>

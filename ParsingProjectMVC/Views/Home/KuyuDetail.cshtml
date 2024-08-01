@@ -17,21 +17,112 @@
         font-size: 18px;
         color: #007bff;
     }
+
+    #graph-compass-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 1200px;
+    }
+
+    #compass-container {
+        text-align: center;
+        display: none; /* Başlangıçta gizli */
+    }
+
+    #compass {
+        width: 150px;
+        height: 150px;
+        border: 4px solid black;
+        border-radius: 50%;
+        background: #ffffff;
+        position: relative;
+        margin: 0 auto;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+
+    .needle {
+        width: 2px;
+        height: 75px;
+        background: red;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform-origin: bottom center;
+        transform: rotate(0deg);
+        transition: transform 0.5s ease;
+        margin-left: -1px; 
+        margin-top: -75px; 
+    }
+
+
+    .direction-label {
+        position: absolute;
+        font-size: 14px;
+        font-weight: bold;
+        color: black;
+    }
+
+    .north {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .south {
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .east {
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .west {
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    #values {
+        margin-top: 20px;
+        background: #ffffff;
+        border-radius: 5px;
+        padding: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
 </style>
 <body>
-    <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
-    <div id="well-3d-plot" style="width: 700px; height: 600px;"></div>
-    <input type="file" id="file-input" style="display:none;" />
-    <div id="values" style="margin-top: 20px;">
-        <h3>Computed Values:</h3>
-        <p id="xMin"></p>
-        <p id="xMax"></p>
-        <p id="yMin"></p>
-        <p id="yMax"></p>
-        <p id="zMin"></p>
-        <p id="zMax"></p>
-        <p id="maxXYRange"></p>
-        <p id="zRange"></p>
+    <div id="container">
+        <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
+        <div id="graph-compass-container">
+            <div id="well-3d-plot" style="max-width: 900px; height: 650px;"></div>
+            <div id="compass-container">
+                <div id="compass">
+                    <div class="needle"></div>
+                    <div class="direction-label north">N</div>
+                    <div class="direction-label south">S</div>
+                    <div class="direction-label east">E</div>
+                    <div class="direction-label west">W</div>
+                </div>
+            </div>
+        </div>
+        <input type="file" id="file-input" style="display:none;" />
+        <div id="values">
+            <h3>Computed Values:</h3>
+            <p id="xMin"></p>
+            <p id="xMax"></p>
+            <p id="yMin"></p>
+            <p id="yMax"></p>
+            <p id="zMin"></p>
+            <p id="zMax"></p>
+            <p id="maxXYRange"></p>
+            <p id="zRange"></p>
+        </div>
     </div>
     <script>
         const dropZone = document.getElementById('drop-zone');
@@ -83,7 +174,6 @@
             try {
                 console.log("Parsing CSV file...");
 
-                // PapaParse kullanarak CSV dosyasını ayrıştırma
                 Papa.parse(csvText, {
                     header: false, // İlk satırı başlık olarak almayacağız
                     skipEmptyLines: true,
@@ -110,6 +200,7 @@
                         const x = [];
                         const y = [];
                         const z = [];
+                        const directions = [];
 
                         let previousX = 0;
                         let previousY = 0;
@@ -147,6 +238,7 @@
                                 y.push(previousY);
                             }
                             z.push(tvd);
+                            directions.push(aziDeg);
                         });
 
                         console.log("x coordinates:", x);
@@ -178,7 +270,7 @@
                         const maxXYRange = Math.max(Math.abs(xMin), Math.abs(xMax), Math.abs(yMin), Math.abs(yMax)) * 2;
                         const zRange = zMax * 1.1;
 
-                        // Computed values, log them to console
+                        
                         console.log("xMin:", xMin);
                         console.log("xMax:", xMax);
                         console.log("yMin:", yMin);
@@ -188,7 +280,7 @@
                         console.log("maxXYRange:", maxXYRange);
                         console.log("zRange:", zRange);
 
-                        // Display the computed values on the webpage
+                        
                         document.getElementById('xMin').textContent = `xMin: ${xMin}`;
                         document.getElementById('xMax').textContent = `xMax: ${xMax}`;
                         document.getElementById('yMin').textContent = `yMin: ${yMin}`;
@@ -210,12 +302,36 @@
                         console.log("Plotting data...");
                         Plotly.newPlot('well-3d-plot', [trace], layout);
                         console.log("Plotting complete.");
+
+                        if (directions.length > 0) {
+                            const averageDirection = directions.reduce((a, b) => a + b, 0) / directions.length;
+                            updateCompass(averageDirection);
+                            document.getElementById('compass-container').style.display = 'block'; // Pusulayı görünür yap
+                        }
+
+                        // Pusula iğnesini grafiğin dönüş açısına göre güncelle
+                        const plotElement = document.getElementById('well-3d-plot');
+                        plotElement.on('plotly_relayout', function (eventdata) {
+                            const camera = eventdata['scene.camera'];
+                            if (camera) {
+                                const { up, eye } = camera;
+                                const angle = Math.atan2(eye.x, eye.y) * (180 / Math.PI);
+                                updateCompass(angle);
+                            }
+                        });
                     }
                 });
             } catch (error) {
                 console.error('Error loading or processing CSV data:', error);
             }
         }
+
+        function updateCompass(direction) {
+            const needle = document.querySelector('.needle');
+            // Pusulanın ters görünmesini engellemek için yönü 180 derece döndür
+            needle.style.transform = `rotate(${direction - 180}deg)`;
+        }
     </script>
 </body>
 </html>
+

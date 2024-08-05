@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id="surface-plot" style="width: 100%; height: 100vh;"></div>
+    <script>
+        async function loadAndPlotData() {
+            try {
+                // Üç farklı JSON dosyasını yükleme
+                const [borelis, bireno, serdj] = await Promise.all([
+                    fetch('/data/Borelis.json').then(response => response.json()),
+                    fetch('/data/Bireno.json').then(response => response.json()),
+                    fetch('/data/Serdj.json').then(response => response.json())
+                ]);
+
+                // Yüzey verilerini işlemek ve trace oluşturmak
+                const surfaces = [borelis, bireno, serdj];
+                const traces = surfaces.map((data, index) => {
+                    const binsX = data.bins[0];
+                    const binsY = data.bins[1];
+                    const extentX = data.extent[0];
+                    const extentY = data.extent[1];
+                    const points = data.points;
+
+                    let x = [];
+                    let y = [];
+                    let z = [];
+
+                    for (let i = 0; i < binsX; i++) {
+                        x.push(extentX[0] + i * data.increment[0]);
+                    }
+
+                    for (let j = 0; j < binsY; j++) {
+                        y.push(extentY[0] + j * data.increment[1]);
+                    }
+
+                    for (let j = 0; j < binsY; j++) {
+                        let row = [];
+                        for (let i = 0; i < binsX; i++) {
+                            row.push(points[j * binsX + i]);
+                        }
+                        z.push(row);
+                    }
+
+                    return {
+                        z: z,
+                        x: x,
+                        y: y,
+                        type: 'surface',
+                        name: `Surface ${index + 1}` // Yüzeylerin isimleri
+                    };
+                });
+
+                // Grafiği çizdirme
+                Plotly.newPlot('surface-plot', traces);
+            } catch (error) {
+                console.error('Veriler yüklenirken hata oluştu:', error);
+            }
+        }
+
+        // Fonksiyonu çağırarak veriyi yükleyip grafiği oluşturuyoruz
+        loadAndPlotData();
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Well Visualization</title>
+    <title>Well and Layer Visualization</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
@@ -18,74 +18,11 @@
         color: #007bff;
     }
 
-    #graph-compass-container {
+    #graph-container {
         display: flex;
         align-items: center;
         width: 100%;
         max-width: 1200px;
-    }
-
-    #compass-container {
-        text-align: center;
-        display: none; /* Başlangıçta gizli */
-    }
-
-    #compass {
-        width: 150px;
-        height: 150px;
-        border: 4px solid black;
-        border-radius: 50%;
-        background: #ffffff;
-        position: relative;
-        margin: 0 auto;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-
-    .needle {
-        width: 2px;
-        height: 75px;
-        background: red;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform-origin: bottom center;
-        transform: rotate(0deg);
-        transition: transform 0.5s ease;
-        margin-left: -1px; 
-        margin-top: -75px; 
-    }
-
-
-    .direction-label {
-        position: absolute;
-        font-size: 14px;
-        font-weight: bold;
-        color: black;
-    }
-
-    .north {
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .south {
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .east {
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    .west {
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
     }
 
     #values {
@@ -99,17 +36,8 @@
 <body>
     <div id="container">
         <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
-        <div id="graph-compass-container">
+        <div id="graph-container">
             <div id="well-3d-plot" style="max-width: 900px; height: 650px;"></div>
-            <div id="compass-container">
-                <div id="compass">
-                    <div class="needle"></div>
-                    <div class="direction-label north">N</div>
-                    <div class="direction-label south">S</div>
-                    <div class="direction-label east">E</div>
-                    <div class="direction-label west">W</div>
-                </div>
-            </div>
         </div>
         <input type="file" id="file-input" style="display:none;" />
         <div id="values">
@@ -128,7 +56,6 @@
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
 
-        // Dosya sürüklendiğinde ve bırakıldığında
         dropZone.addEventListener('dragover', (event) => {
             event.preventDefault();
             dropZone.style.backgroundColor = '#e1e1e1';
@@ -154,12 +81,10 @@
             }
         });
 
-    
         dropZone.addEventListener('click', () => {
             fileInput.click();
         });
 
-        // Dosya işleme
         function handleFile(file) {
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -169,19 +94,18 @@
             reader.readAsText(file);
         }
 
-        // CSV dosyasını yükleyip işleyen fonksiyon
         function processCSV(csvText) {
             try {
                 console.log("Parsing CSV file...");
 
                 Papa.parse(csvText, {
-                    header: false, // İlk satırı başlık olarak almayacağız
+                    header: false,
                     skipEmptyLines: true,
                     complete: function (results) {
                         console.log("CSV parsing complete.");
                         const data = results.data;
 
-                        // "Wellpath Report" satırını bulup ondan sonraki verileri al
+                        // Extract wellpath data from CSV
                         const wellpathStartIndex = data.findIndex(row => row.includes('Wellpath Report'));
                         if (wellpathStartIndex === -1) {
                             console.error("Wellpath Report not found in CSV.");
@@ -190,17 +114,15 @@
 
                         console.log("Wellpath Report found at index:", wellpathStartIndex);
 
-                        const headers = data[wellpathStartIndex + 1]; // Sütun başlıkları
-                        const wellpathData = data.slice(wellpathStartIndex + 2); // Veriler
+                        const headers = data[wellpathStartIndex + 1];
+                        const wellpathData = data.slice(wellpathStartIndex + 2);
 
                         console.log("Headers:", headers);
                         console.log("Wellpath data:", wellpathData);
 
-                        // Belirli sütunları seç ve x, y, z koordinatlarını hesapla
                         const x = [];
                         const y = [];
                         const z = [];
-                        const directions = [];
 
                         let previousX = 0;
                         let previousY = 0;
@@ -210,7 +132,6 @@
                             const aziDegStr = row[headers.indexOf('Azi[deg]')];
                             const tvdStr = row[headers.indexOf('TVD[m]')];
 
-                            // Verileri kontrol et ve dönüştür
                             if (!verticalSectionStr || !aziDegStr || !tvdStr) {
                                 console.error("Missing data in row:", row);
                                 return;
@@ -220,13 +141,12 @@
                             const aziDeg = parseFloat(aziDegStr.replace(',', '.'));
                             const tvd = parseFloat(tvdStr.replace(',', '.'));
 
-                            // Dönüşümlerin geçerli olup olmadığını kontrol et
                             if (isNaN(verticalSection) || isNaN(aziDeg) || isNaN(tvd)) {
                                 console.error(`Invalid data: Vertical Section = ${verticalSection}, Azi = ${aziDeg}, TVD = ${tvd}`);
                                 return;
                             }
 
-                            const aziRad = aziDeg * (Math.PI / 180); // Dereceden radyana çevirme
+                            const aziRad = aziDeg * (Math.PI / 180);
 
                             if (aziDeg === 0 && x.length > 0 && y.length > 0) {
                                 x.push(previousX);
@@ -238,15 +158,13 @@
                                 y.push(previousY);
                             }
                             z.push(tvd);
-                            directions.push(aziDeg);
                         });
 
                         console.log("x coordinates:", x);
                         console.log("y coordinates:", y);
                         console.log("z coordinates:", z);
 
-                        // 3D grafik çizimi
-                        const trace = {
+                        const wellTrace = {
                             x: x,
                             y: y,
                             z: z,
@@ -258,80 +176,118 @@
                             }
                         };
 
-                        // Eksen aralıklarını belirlemek için min ve max değerleri
-                        const xMin = Math.min(...x);
-                        const xMax = Math.max(...x);
-                        const yMin = Math.min(...y);
-                        const yMax = Math.max(...y);
-                        const zMin = Math.min(...z);
-                        const zMax = Math.max(...z);
-
-                        // X ve Y ekseni aralıklarını ayarlamak için maksimum değeri belirleyelim
-                        const maxXYRange = Math.max(Math.abs(xMin), Math.abs(xMax), Math.abs(yMin), Math.abs(yMax)) * 2;
-                        const zRange = zMax * 1.1;
-
-                        
-                        console.log("xMin:", xMin);
-                        console.log("xMax:", xMax);
-                        console.log("yMin:", yMin);
-                        console.log("yMax:", yMax);
-                        console.log("zMin:", zMin);
-                        console.log("zMax:", zMax);
-                        console.log("maxXYRange:", maxXYRange);
-                        console.log("zRange:", zRange);
-
-                        
-                        document.getElementById('xMin').textContent = `xMin: ${xMin}`;
-                        document.getElementById('xMax').textContent = `xMax: ${xMax}`;
-                        document.getElementById('yMin').textContent = `yMin: ${yMin}`;
-                        document.getElementById('yMax').textContent = `yMax: ${yMax}`;
-                        document.getElementById('zMin').textContent = `zMin: ${zMin}`;
-                        document.getElementById('zMax').textContent = `zMax: ${zMax}`;
-                        document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
-                        document.getElementById('zRange').textContent = `zRange: ${zRange}`;
-
-                        const layout = {
-                            scene: {
-                                xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
-                                yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
-                                zaxis: { title: 'Z', range: [zRange,0] }
-                            },
-                            title: '3D Well Path'
+                        const arrowBody = {
+                            x: [0, 0],
+                            y: [0, maxXYRange / 2],
+                            z: [0, 0],
+                            mode: 'lines',
+                            type: 'scatter3d',
+                            line: {
+                                color: 'red',
+                                width: 4
+                            }
                         };
 
-                        console.log("Plotting data...");
-                        Plotly.newPlot('well-3d-plot', [trace], layout);
-                        console.log("Plotting complete.");
-
-                        if (directions.length > 0) {
-                            const averageDirection = directions.reduce((a, b) => a + b, 0) / directions.length;
-                            updateCompass(averageDirection);
-                            document.getElementById('compass-container').style.display = 'block'; // Pusulayı görünür yap
-                        }
-
-                        // Pusula iğnesini grafiğin dönüş açısına göre güncelle
-                        const plotElement = document.getElementById('well-3d-plot');
-                        plotElement.on('plotly_relayout', function (eventdata) {
-                            const camera = eventdata['scene.camera'];
-                            if (camera) {
-                                const { up, eye } = camera;
-                                const angle = Math.atan2(eye.x, eye.y) * (180 / Math.PI);
-                                updateCompass(angle);
+                        const arrowHead = {
+                            x: [0, 0.1, -0.1],
+                            y: [maxXYRange / 2, maxXYRange / 2 - 0.1, maxXYRange / 2 - 0.1],
+                            z: [0, 0, 0],
+                            mode: 'lines',
+                            type: 'scatter3d',
+                            line: {
+                                color: 'red',
+                                width: 4
                             }
-                        });
+                        };
+
+                        const arrowText = {
+                            x: [0],
+                            y: [maxXYRange / 2 + 0.5],
+                            z: [0],
+                            mode: 'text',
+                            type: 'scatter3d',
+                            text: ['N'],
+                            textposition: 'middle right',
+                            textfont: {
+                                color: 'red',
+                                size: 14
+                            }
+                        };
+
+                        // Load surface data from JSON files
+                        const loadSurfaceData = async () => {
+                            try {
+                                const [borelis, bireno, serdj] = await Promise.all([
+                                    fetch('/data/Borelis.json').then(response => response.json()),
+                                    fetch('/data/Bireno.json').then(response => response.json()),
+                                    fetch('/data/Serdj.json').then(response => response.json())
+                                ]);
+
+                                const surfaces = [borelis, bireno, serdj];
+                                const surfaceTraces = surfaces.map((data, index) => {
+                                    const binsX = data.bins[0];
+                                    const binsY = data.bins[1];
+                                    const extentX = data.extent[0];
+                                    const extentY = data.extent[1];
+                                    const points = data.points;
+
+                                    let x = [];
+                                    let y = [];
+                                    let z = [];
+
+                                    for (let i = 0; i < binsX; i++) {
+                                        x.push(extentX[0] + i * data.increment[0]);
+                                    }
+
+                                    for (let j = 0; j < binsY; j++) {
+                                        y.push(extentY[0] + j * data.increment[1]);
+                                    }
+
+                                    for (let j = 0; j < binsY; j++) {
+                                        let row = [];
+                                        for (let i = 0; i < binsX; i++) {
+                                            row.push(points[j * binsX + i]);
+                                        }
+                                        z.push(row);
+                                    }
+
+                                    return {
+                                        z: z,
+                                        x: x,
+                                        y: y,
+                                        type: 'surface',
+                                        name: `Surface ${index + 1}` // Yüzeylerin isimleri
+                                    };
+                                });
+
+                                // Plot the combined data
+                                const layout = {
+                                    scene: {
+                                        xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
+                                        yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
+                                        zaxis: { title: 'Z', range: [zRange, 0] }
+                                    },
+                                    title: '3D Well and Layer Visualization'
+                                };
+
+                                Plotly.newPlot('well-3d-plot', [wellTrace, ...surfaceTraces, arrowBody, arrowHead, arrowText], layout);
+                                console.log("Plotting complete.");
+                            } catch (error) {
+                                console.error('Error loading surface data:', error);
+                            }
+                        };
+
+                        loadSurfaceData();
+
                     }
                 });
             } catch (error) {
-                console.error('Error loading or processing CSV data:', error);
+                console.error('Error loading or processing data:', error);
             }
         }
 
-        function updateCompass(direction) {
-            const needle = document.querySelector('.needle');
-            // Pusulanın ters görünmesini engellemek için yönü 180 derece döndür
-            needle.style.transform = `rotate(${direction - 180}deg)`;
-        }
+        // Fonksiyonu çağırarak veriyi yükleyip grafiği oluşturuyoruz
+        loadAndPlotData();
     </script>
 </body>
 </html>
-

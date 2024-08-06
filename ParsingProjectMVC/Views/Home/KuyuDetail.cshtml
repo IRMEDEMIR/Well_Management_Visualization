@@ -1,43 +1,46 @@
-﻿<!DOCTYPE html>
+﻿@{
+    ViewData["Title"] = "Combined Surfaces and Well Visualization";
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Well and Layer Visualization</title>
+    <title>@ViewData["Title"]</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        #drop-zone {
+            border: 2px dashed #007bff;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px;
+            font-size: 18px;
+            color: #007bff;
+        }
+
+        #graph-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        #values {
+            margin-top: 20px;
+            background: #ffffff;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<style>
-    #drop-zone {
-        border: 2px dashed #007bff;
-        border-radius: 5px;
-        padding: 20px;
-        text-align: center;
-        margin: 20px;
-        font-size: 18px;
-        color: #007bff;
-    }
-
-    #graph-container {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        max-width: 1200px;
-    }
-
-    #values {
-        margin-top: 20px;
-        background: #ffffff;
-        border-radius: 5px;
-        padding: 15px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
-</style>
 <body>
     <div id="container">
         <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
         <div id="graph-container">
-            <div id="well-3d-plot" style="max-width: 900px; height: 650px;"></div>
+            <div id="combined-plot" style="max-width: 900px; height: 650px;"></div>
         </div>
         <input type="file" id="file-input" style="display:none;" />
         <div id="values">
@@ -70,14 +73,14 @@
             dropZone.style.backgroundColor = '';
             const files = event.dataTransfer.files;
             if (files.length) {
-                handleFile(files[0]);
+                handleFiles(files);
             }
         });
 
         fileInput.addEventListener('change', () => {
             const files = fileInput.files;
             if (files.length) {
-                handleFile(files[0]);
+                handleFiles(files);
             }
         });
 
@@ -85,209 +88,199 @@
             fileInput.click();
         });
 
-        function handleFile(file) {
+        function handleFiles(files) {
+            if (files.length < 4) {
+                alert('Lütfen en az 4 dosya seçin (3 JSON ve 1 CSV).');
+                return;
+            }
+
+            const jsonFiles = [];
+            let csvFile = null;
+
+            Array.from(files).forEach(file => {
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    jsonFiles.push(file);
+                } else if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                    csvFile = file;
+                } else {
+                    alert('Sadece JSON ve CSV dosyaları kabul edilir.');
+                }
+            });
+
+            if (jsonFiles.length !== 3 || !csvFile) {
+                alert('Lütfen 3 JSON dosyası ve 1 CSV dosyası yükleyin.');
+                return;
+            }
+
+            const jsonReaders = [];
+            const jsonDataArray = [];
+
+            jsonFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                jsonReaders.push(reader);
+                reader.onload = (event) => {
+                    const jsonData = JSON.parse(event.target.result);
+                    jsonDataArray[index] = jsonData;
+                    if (jsonDataArray.length === jsonFiles.length) {
+                        loadCSVData(csvFile, jsonDataArray);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function loadCSVData(csvFile, jsonDataArray) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const csvText = event.target.result;
-                processCSV(csvText);
+                processCSV(csvText, jsonDataArray);
             };
-            reader.readAsText(file);
+            reader.readAsText(csvFile);
         }
 
-        function processCSV(csvText) {
-            try {
-                console.log("Parsing CSV file...");
+        function processCSV(csvText, jsonDataArray) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function (results) {
+                    const data = results.data;
 
-                Papa.parse(csvText, {
-                    header: false,
-                    skipEmptyLines: true,
-                    complete: function (results) {
-                        console.log("CSV parsing complete.");
-                        const data = results.data;
+                    const wellpathStartIndex = data.findIndex(row => row.includes('Wellpath Report'));
+                    if (wellpathStartIndex === -1) {
+                        console.error("Wellpath Report not found in CSV.");
+                        return;
+                    }
 
-                        // Extract wellpath data from CSV
-                        const wellpathStartIndex = data.findIndex(row => row.includes('Wellpath Report'));
-                        if (wellpathStartIndex === -1) {
-                            console.error("Wellpath Report not found in CSV.");
+                    const headers = data[wellpathStartIndex + 1];
+                    const wellpathData = data.slice(wellpathStartIndex + 2);
+
+                    // Surface'ın merkezini hesapla
+                    const surfaceData = jsonDataArray[0]; // İlk JSON dosyasını kullanarak hesaplayalım
+                    const centerX = (surfaceData.extent[0][0] + surfaceData.extent[1][0]) / 2;
+                    const centerY = (surfaceData.extent[0][1] + surfaceData.extent[1][1]) / 2;
+
+                    let x = [];
+                    let y = [];
+                    const z = [];
+
+                    let previousX = 0;
+                    let previousY = 0;
+
+                    wellpathData.forEach(row => {
+                        const verticalSectionStr = row[headers.indexOf('Vertical Section[m]')];
+                        const aziDegStr = row[headers.indexOf('Azi[deg]')];
+                        const tvdStr = row[headers.indexOf('TVD[m]')];
+
+                        if (!verticalSectionStr || !aziDegStr || !tvdStr) {
+                            console.error("Missing data in row:", row);
                             return;
                         }
 
-                        console.log("Wellpath Report found at index:", wellpathStartIndex);
+                        const verticalSection = parseFloat(verticalSectionStr.replace(',', '.'));
+                        const aziDeg = parseFloat(aziDegStr.replace(',', '.'));
+                        const tvd = parseFloat(tvdStr.replace(',', '.'));
 
-                        const headers = data[wellpathStartIndex + 1];
-                        const wellpathData = data.slice(wellpathStartIndex + 2);
+                        if (isNaN(verticalSection) || isNaN(aziDeg) || isNaN(tvd)) {
+                            console.error(`Invalid data: Vertical Section = ${verticalSection}, Azi = ${aziDeg}, TVD = ${tvd}`);
+                            return;
+                        }
 
-                        console.log("Headers:", headers);
-                        console.log("Wellpath data:", wellpathData);
+                        const aziRad = aziDeg * (Math.PI / 180);
 
-                        const x = [];
-                        const y = [];
-                        const z = [];
+                        if (aziDeg === 0 && x.length > 0 && y.length > 0) {
+                            x.push(previousX);
+                            y.push(previousY);
+                        } else {
+                            previousX = verticalSection * Math.sin(aziRad);
+                            previousY = verticalSection * Math.cos(aziRad);
+                            x.push(previousX);
+                            y.push(previousY);
+                        }
 
-                        let previousX = 0;
-                        let previousY = 0;
+                        z.push(-tvd + surfaceData.extent[1][2]); // simetriği
+                    });
 
-                        wellpathData.forEach(row => {
-                            const verticalSectionStr = row[headers.indexOf('Vertical Section[m]')];
-                            const aziDegStr = row[headers.indexOf('Azi[deg]')];
-                            const tvdStr = row[headers.indexOf('TVD[m]')];
+                    // Well Path verilerini yüzeyin merkezine göre kaydırma
+                    x = x.map(v => v + centerX);
+                    y = y.map(v => v + centerY);
 
-                            if (!verticalSectionStr || !aziDegStr || !tvdStr) {
-                                console.error("Missing data in row:", row);
-                                return;
+                    const wellTrace = {
+                        x: x,
+                        y: y,
+                        z: z,
+                        mode: 'lines',
+                        type: 'scatter3d',
+                        line: {
+                            color: 'blue',
+                            width: 4
+                        }
+                    };
+
+                    const surfaceTraces = jsonDataArray.map((data, index) => {
+                        const binsX = data.bins[0];
+                        const binsY = data.bins[1];
+                        const extentX = data.extent[0][0];
+                        const extentY = data.extent[0][1];
+                        const points = data.points;
+
+                        let x = [];
+                        let y = [];
+                        let z = [];
+
+                        for (let i = 0; i < binsX; i++) {
+                            x.push(extentX + i * data.increment[0]);
+                        }
+
+                        for (let j = 0; j < binsY; j++) {
+                            y.push(extentY + j * data.increment[1]);
+                        }
+
+                        for (let j = 0; j < binsY; j++) {
+                            let row = [];
+                            for (let i = 0; i < binsX; i++) {
+                                row.push(points[j * binsX + i]);
                             }
+                            z.push(row);
+                        }
 
-                            const verticalSection = parseFloat(verticalSectionStr.replace(',', '.'));
-                            const aziDeg = parseFloat(aziDegStr.replace(',', '.'));
-                            const tvd = parseFloat(tvdStr.replace(',', '.'));
-
-                            if (isNaN(verticalSection) || isNaN(aziDeg) || isNaN(tvd)) {
-                                console.error(`Invalid data: Vertical Section = ${verticalSection}, Azi = ${aziDeg}, TVD = ${tvd}`);
-                                return;
-                            }
-
-                            const aziRad = aziDeg * (Math.PI / 180);
-
-                            if (aziDeg === 0 && x.length > 0 && y.length > 0) {
-                                x.push(previousX);
-                                y.push(previousY);
-                            } else {
-                                previousX = verticalSection * Math.sin(aziRad);
-                                previousY = verticalSection * Math.cos(aziRad);
-                                x.push(previousX);
-                                y.push(previousY);
-                            }
-                            z.push(tvd);
-                        });
-
-                        console.log("x coordinates:", x);
-                        console.log("y coordinates:", y);
-                        console.log("z coordinates:", z);
-
-                        const wellTrace = {
+                        return {
+                            z: z,
                             x: x,
                             y: y,
-                            z: z,
-                            mode: 'lines',
-                            type: 'scatter3d',
-                            line: {
-                                color: 'blue',
-                                width: 6
-                            }
+                            type: 'surface',
+                            name: `Surface ${index + 1}`
                         };
+                    });
 
-                        const arrowBody = {
-                            x: [0, 0],
-                            y: [0, maxXYRange / 2],
-                            z: [0, 0],
-                            mode: 'lines',
-                            type: 'scatter3d',
-                            line: {
-                                color: 'red',
-                                width: 4
-                            }
-                        };
+                    // Add direction arrow
+                    const arrowTrace = {
+                        type: 'scatter3d',
+                        mode: 'lines',
+                        x: [centerX, centerX],
+                        y: [centerY, centerY + 10000], // Burada boyutu artırdık
+                        z: [surfaceData.extent[1][2], surfaceData.extent[1][2]],
+                        line: {
+                            color: 'red',
+                            width: 5
+                        },
+                        name: 'North Arrow'
+                    };
 
-                        const arrowHead = {
-                            x: [0, 0.1, -0.1],
-                            y: [maxXYRange / 2, maxXYRange / 2 - 0.1, maxXYRange / 2 - 0.1],
-                            z: [0, 0, 0],
-                            mode: 'lines',
-                            type: 'scatter3d',
-                            line: {
-                                color: 'red',
-                                width: 4
-                            }
-                        };
+                    const layout = {
+                        title: 'Combined Surfaces and Well Visualization',
+                        showlegend: true,
+                        scene: {
+                            xaxis: { title: 'X Axis' },
+                            yaxis: { title: 'Y Axis' },
+                            zaxis: { title: 'Z Axis' }
+                        }
+                    };
 
-                        const arrowText = {
-                            x: [0],
-                            y: [maxXYRange / 2 + 0.5],
-                            z: [0],
-                            mode: 'text',
-                            type: 'scatter3d',
-                            text: ['N'],
-                            textposition: 'middle right',
-                            textfont: {
-                                color: 'red',
-                                size: 14
-                            }
-                        };
-
-                        // Load surface data from JSON files
-                        const loadSurfaceData = async () => {
-                            try {
-                                const [borelis, bireno, serdj] = await Promise.all([
-                                    fetch('/data/Borelis.json').then(response => response.json()),
-                                    fetch('/data/Bireno.json').then(response => response.json()),
-                                    fetch('/data/Serdj.json').then(response => response.json())
-                                ]);
-
-                                const surfaces = [borelis, bireno, serdj];
-                                const surfaceTraces = surfaces.map((data, index) => {
-                                    const binsX = data.bins[0];
-                                    const binsY = data.bins[1];
-                                    const extentX = data.extent[0];
-                                    const extentY = data.extent[1];
-                                    const points = data.points;
-
-                                    let x = [];
-                                    let y = [];
-                                    let z = [];
-
-                                    for (let i = 0; i < binsX; i++) {
-                                        x.push(extentX[0] + i * data.increment[0]);
-                                    }
-
-                                    for (let j = 0; j < binsY; j++) {
-                                        y.push(extentY[0] + j * data.increment[1]);
-                                    }
-
-                                    for (let j = 0; j < binsY; j++) {
-                                        let row = [];
-                                        for (let i = 0; i < binsX; i++) {
-                                            row.push(points[j * binsX + i]);
-                                        }
-                                        z.push(row);
-                                    }
-
-                                    return {
-                                        z: z,
-                                        x: x,
-                                        y: y,
-                                        type: 'surface',
-                                        name: `Surface ${index + 1}` // Yüzeylerin isimleri
-                                    };
-                                });
-
-                                // Plot the combined data
-                                const layout = {
-                                    scene: {
-                                        xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
-                                        yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
-                                        zaxis: { title: 'Z', range: [zRange, 0] }
-                                    },
-                                    title: '3D Well and Layer Visualization'
-                                };
-
-                                Plotly.newPlot('well-3d-plot', [wellTrace, ...surfaceTraces, arrowBody, arrowHead, arrowText], layout);
-                                console.log("Plotting complete.");
-                            } catch (error) {
-                                console.error('Error loading surface data:', error);
-                            }
-                        };
-
-                        loadSurfaceData();
-
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading or processing data:', error);
-            }
+                    const combinedData = [...surfaceTraces, wellTrace, arrowTrace];
+                    Plotly.newPlot('combined-plot', combinedData, layout);
+                }
+            });
         }
-
-        // Fonksiyonu çağırarak veriyi yükleyip grafiği oluşturuyoruz
-        loadAndPlotData();
     </script>
 </body>
 </html>

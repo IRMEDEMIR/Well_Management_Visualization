@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Combined Surfaces and Well Visualization";
+    ViewData["Title"] = "Kuyu Ve Yüzey Görselleştirmesi";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -34,15 +34,38 @@
             padding: 15px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
+
+        /*başta gizli*/
+        #palette-container {
+            display: none; 
+        }
     </style>
 </head>
 <body>
     <div id="container">
         <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
+        <div id="palette-container">
+            <label for="palette-select">Renk Paleti Seçiniz:</label>
+            <select id="palette-select">
+                <option value="Viridis">Viridis</option>
+                <option value="Cividis">Cividis</option>
+                <option value="Plasma">Plasma</option>
+                <option value="Inferno">Inferno</option>
+                <option value="Magma">Magma</option>
+                <option value="Rainbow">Rainbow</option>
+                <option value="Jet">Jet</option>
+                <option value="Hot">Hot</option>
+                <option value="Electric">Electric</option>
+                <option value="Earth">Earth</option>
+                <option value="YlGnBu">YlGnBu</option>
+                <option value="YlOrRd">YlOrRd</option>
+            </select>
+        </div>
         <div id="graph-container">
             <div id="combined-plot" style="max-width: 900px; height: 650px;"></div>
         </div>
         <input type="file" id="file-input" style="display:none;" />
+       
         <div id="values">
             <h3>Computed Values:</h3>
             <p id="xMin"></p>
@@ -56,6 +79,7 @@
         </div>
     </div>
     <script>
+
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
 
@@ -138,6 +162,7 @@
             reader.readAsText(csvFile);
         }
 
+
         function processCSV(csvText, jsonDataArray) {
             Papa.parse(csvText, {
                 header: false,
@@ -155,7 +180,7 @@
                     const wellpathData = data.slice(wellpathStartIndex + 2);
 
                     // Surface'ın merkezini hesapla
-                    const surfaceData = jsonDataArray[0]; // İlk JSON dosyasını kullanarak hesaplayalım
+                    const surfaceData = jsonDataArray[2];
                     const centerX = (surfaceData.extent[0][0] + surfaceData.extent[1][0]) / 2;
                     const centerY = (surfaceData.extent[0][1] + surfaceData.extent[1][1]) / 2;
 
@@ -216,68 +241,101 @@
                         }
                     };
 
-                    const surfaceTraces = jsonDataArray.map((data, index) => {
-                        const binsX = data.bins[0];
-                        const binsY = data.bins[1];
-                        const extentX = data.extent[0][0];
-                        const extentY = data.extent[0][1];
-                        const points = data.points;
+                    const paletteSelect = document.getElementById('palette-select');
 
-                        let x = [];
-                        let y = [];
-                        let z = [];
-
-                        for (let i = 0; i < binsX; i++) {
-                            x.push(extentX + i * data.increment[0]);
-                        }
-
-                        for (let j = 0; j < binsY; j++) {
-                            y.push(extentY + j * data.increment[1]);
-                        }
-
-                        for (let j = 0; j < binsY; j++) {
-                            let row = [];
-                            for (let i = 0; i < binsX; i++) {
-                                row.push(points[j * binsX + i]);
-                            }
-                            z.push(row);
-                        }
-
-                        return {
-                            z: z,
-                            x: x,
-                            y: y,
-                            type: 'surface',
-                            name: `Surface ${index + 1}`
-                        };
+                    paletteSelect.addEventListener('change', () => {
+                        updatePlot();
                     });
 
-                    // Add direction arrow
-                    const arrowTrace = {
-                        type: 'scatter3d',
-                        mode: 'lines',
-                        x: [centerX, centerX],
-                        y: [centerY, centerY + 10000], // Burada boyutu artırdık
-                        z: [surfaceData.extent[1][2], surfaceData.extent[1][2]],
-                        line: {
-                            color: 'red',
-                            width: 5
-                        },
-                        name: 'North Arrow'
-                    };
+                    function updatePlot() {
+                        const selectedPalette = paletteSelect.value;
 
-                    const layout = {
-                        title: 'Combined Surfaces and Well Visualization',
-                        showlegend: true,
-                        scene: {
-                            xaxis: { title: 'X Axis' },
-                            yaxis: { title: 'Y Axis' },
-                            zaxis: { title: 'Z Axis' }
-                        }
-                    };
+                        const surfaceTraces = jsonDataArray.map((data, index) => {
+                            const binsX = data.bins[0];
+                            const binsY = data.bins[1];
+                            const extentX = data.extent[0][0];
+                            const extentY = data.extent[0][1];
+                            const points = data.points;
 
-                    const combinedData = [...surfaceTraces, wellTrace, arrowTrace];
-                    Plotly.newPlot('combined-plot', combinedData, layout);
+                            let x = [];
+                            let y = [];
+                            let z = [];
+
+                            for (let i = 0; i < binsX; i++) {
+                                x.push(extentX + i * data.increment[0]);
+                            }
+
+                            for (let j = 0; j < binsY; j++) {
+                                y.push(extentY + j * data.increment[1]);
+                            }
+
+                            for (let j = 0; j < binsY; j++) {
+                                let row = [];
+                                for (let i = 0; i < binsX; i++) {
+                                    row.push(points[j * binsX + i]);
+                                }
+                                z.push(row);
+                            }
+                            return {
+                                z: z,
+                                x: x,
+                                y: y,
+                                type: 'surface',
+                                colorscale: selectedPalette, // Seçilen renk skalası
+                                name: `Surface ${index + 1}`,
+                                colorbar: {
+                                    len: 0.6, // Renk çubuğunun uzunluğunu ayarlayabilirsiniz
+                                    thickness: 10, // Renk çubuğunun kalınlığı
+                                    tickfont: {
+                                        size: 12, // Yazı boyutunu küçülttük
+                                        color: 'black' // Yazı rengi
+                                    },
+                                    title: {
+                                        text: `Surface ${index + 1}`, // Renk çubuğu başlığı
+                                        font: {
+                                            size: 12, // Başlık yazı boyutu
+                                            color: 'black' // Başlık yazı rengi
+                                        },
+                                        side: 'right'
+                                    },
+                                    x: 1.5 + index * 0.15, // Renk çubuğunu yatayda kaydır
+                                    y: 0.7 // Tüm renk çubuklarını aynı hizaya getirin
+                                }
+                            };
+
+                        });
+
+
+                        // Add direction arrow
+                        const arrowTrace = {
+                            type: 'scatter3d',
+                            mode: 'lines',
+                            x: [centerX, centerX],
+                            y: [centerY, centerY + 10000], // Burada boyutu artırdık
+                            z: [surfaceData.extent[1][2], surfaceData.extent[1][2]],
+                            line: {
+                                color: 'red',
+                                width: 5
+                            },
+                            name: 'Kuzey Yönü'
+                        };
+
+                        const layout = {
+                            title: 'Kuyu Ve Yüzey Görselleştirmesi',
+                            showlegend: true,
+                            scene: {
+                                xaxis: { title: 'X Axis' },
+                                yaxis: { title: 'Y Axis' },
+                                zaxis: { title: 'Z Axis' }
+                            }
+                        };
+
+                        const combinedData = [...surfaceTraces, wellTrace, arrowTrace];
+                        Plotly.newPlot('combined-plot', combinedData, layout);
+                        document.getElementById('palette-container').style.display = 'block';
+                    }
+
+                    updatePlot();
                 }
             });
         }

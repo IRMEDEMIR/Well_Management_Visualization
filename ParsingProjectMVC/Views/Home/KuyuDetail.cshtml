@@ -238,7 +238,8 @@
                         line: {
                             color: 'blue',
                             width: 4
-                        }
+                        },
+                        name: 'Kuyu'
                     };
 
                     const paletteSelect = document.getElementById('palette-select');
@@ -298,7 +299,7 @@
                                         },
                                         side: 'right'
                                     },
-                                    x: 1.5 + index * 0.15, // Renk çubuğunu yatayda kaydır
+                                    x: 1.7 + index * 0.20, // Renk çubuğunu yatayda kaydır
                                     y: 0.7 // Tüm renk çubuklarını aynı hizaya getirin
                                 }
                             };
@@ -311,11 +312,11 @@
                             type: 'scatter3d',
                             mode: 'lines',
                             x: [centerX, centerX],
-                            y: [centerY, centerY + 10000], // Burada boyutu artırdık
+                            y: [centerY, centerY + 2000], // Burada boyutu artırdık
                             z: [surfaceData.extent[1][2], surfaceData.extent[1][2]],
                             line: {
                                 color: 'red',
-                                width: 5
+                                width: 4
                             },
                             name: 'Kuzey Yönü'
                         };

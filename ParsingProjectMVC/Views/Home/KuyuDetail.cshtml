@@ -183,6 +183,7 @@
             reader.readAsText(csvFile);
         }
 
+
         function processCSV(csvText, jsonDataArray) {
             Papa.parse(csvText, {
                 header: false,
@@ -286,7 +287,7 @@
                         name: 'Kuyu'
                     };
 
-                 
+
                     const xMin = Math.min(...x);
                     const xMax = Math.max(...x);
                     const yMin = Math.min(...y);
@@ -306,6 +307,37 @@
                     document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
                     document.getElementById('zRange').textContent = `zRange: ${zRange}`;
 
+
+
+
+
+                    const cone = {
+                        type: 'cone',
+                        x: [maxXYRange - 50],
+                        y: [0],
+                        z: [zMax],
+                        u: [0],
+                        v: [2],
+                        w: [0],
+                        colorscale: [[0, 'red'], [1, 'red']],
+
+                        sizemode: 'scaled',
+                        sizeref: 50,
+                        anchor: 'tail',
+                        showscale: false
+                    };
+                    const text = {
+                        x: [maxXYRange - 50],
+                        y: [0],
+                        z: [zMax],
+                        mode: 'text',
+                        type: 'scatter3d',
+                        text: ['Kuzey'],
+                        textposition: 'top center',
+                        showlegend: false
+                    };
+                    const combinedData = [wellTrace, cone, text];
+
                     const layout = {
                         scene: {
                             xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
@@ -315,10 +347,10 @@
                         title: '3D Well Path'
                     };
 
-                    Plotly.newPlot('combined-plot', [wellTrace], layout);
+                    Plotly.newPlot('combined-plot', combinedData, layout);
                     document.getElementById('palette-container').style.display = 'none';
 
-               
+
                     if (jsonDataArray.length) {
                         processJSONData(jsonDataArray, wellTrace);
                     }
@@ -334,6 +366,88 @@
             });
 
             updatePlot(jsonDataArray, wellTrace);
+        }
+        function getSurfaceBounds(jsonDataArray) {
+            let minX = Infinity;
+            let minY = Infinity;
+            let maxZ = -Infinity;
+
+            jsonDataArray.forEach(data => {
+                const binsX = data.bins[0];
+                const binsY = data.bins[1];
+                const extentX = data.extent[0][0];
+                const extentY = data.extent[0][1];
+                const points = data.points;
+
+                for (let i = 0; i < binsX; i++) {
+                    const x = extentX + i * data.increment[0];
+                    if (x < minX) {
+                        minX = x;
+                    }
+                }
+
+                for (let j = 0; j < binsY; j++) {
+                    const y = extentY + j * data.increment[1];
+                    if (y < minY) {
+                        minY = y;
+                    }
+                }
+
+                for (let j = 0; j < binsY; j++) {
+                    for (let i = 0; i < binsX; i++) {
+                        if (points[j * binsX + i] > maxZ) {
+                            maxZ = points[j * binsX + i];
+                        }
+                    }
+                }
+            });
+
+            return { minX, minY, maxZ };
+        }
+
+        function addDirectionArrow(minX, minY, maxZ) {
+            /*const line = {
+                x: [minX, minX],
+                y: [minY, minY+5],
+                z: [maxZ, maxZ],
+                mode: 'lines+text',
+                type: 'scatter3d',
+                text: ['Kuzey'],
+                textposition: 'top center',
+                line: {
+                    color: 'red',
+                    width: 10
+                },
+                showlegend: false
+            };*/
+
+            const cone = {
+                type: 'cone',
+                x: [minX],
+                y: [minY + 5000],
+                z: [maxZ],
+                u: [0],
+                v: [25],
+                w: [0],
+                colorscale: [[0, 'red'], [1, 'red']],
+
+                sizemode: 'scaled',
+                sizeref: 100,
+                anchor: 'tail',
+                showscale: false
+            };
+            const text = {
+                x: [minX],
+                y: [minY + 5000],
+                z: [maxZ],
+                mode: 'text',
+                type: 'scatter3d',
+                text: ['Kuzey'],
+                textposition: 'top center',
+                showlegend: false
+            };
+
+            return { cone, text };
         }
 
         function updatePlot(jsonDataArray, wellTrace = null) {
@@ -394,11 +508,17 @@
                 };
             });
 
-            const combinedData = surfaceTraces;
+            const combinedData = [...surfaceTraces];
             if (wellTrace) {
                 combinedData.push(wellTrace);
             }
 
+            const { minX, minY, maxZ } = getSurfaceBounds(jsonDataArray);
+
+            const { cone, text } = addDirectionArrow(minX, minY, maxZ);
+            //combinedData.push(line);  // Çizgiyi veri dizisine ekle
+            combinedData.push(cone);  // Koniyi veri dizisine ekle
+            combinedData.push(text);  // Metni veri dizisine ekle
             const layout = {
                 title: 'Kuyu Ve Yüzey Görselleştirmesi',
                 showlegend: true,
@@ -412,6 +532,9 @@
             Plotly.newPlot('combined-plot', combinedData, layout);
             document.getElementById('palette-container').style.display = 'block';
         }
+
+
+
     </script>
 </body>
 </html>

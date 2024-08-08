@@ -260,12 +260,10 @@
                             x.push(previousX);
                             y.push(previousY);
                         }
-                        if (jsonDataArray.length) {
-                            z.push(maxExtentZ - tvd);
-                        }
-                        else {
-                            z.push(tvd);
-                        }
+                        
+                        
+                        z.push(tvd);
+                        
                         directions.push(aziDeg);
                     });
 
@@ -525,7 +523,7 @@
                 scene: {
                     xaxis: { title: 'X Axis' },
                     yaxis: { title: 'Y Axis' },
-                    zaxis: { title: 'Z Axis' }
+                    zaxis: { title: 'Z Axis', range: [maxZ,0] }
                 }
             };
 
@@ -533,6 +531,8 @@
             document.getElementById('palette-container').style.display = 'block';
         }
 
+
+        
 
 
     </script>

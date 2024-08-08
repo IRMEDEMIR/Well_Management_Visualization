@@ -260,17 +260,13 @@
                             x.push(previousX);
                             y.push(previousY);
                         }
-                        
-                        
-                        z.push(tvd);
-                        
-                        directions.push(aziDeg);
+
+                        z.push(-tvd + surfaceData.extent[1][2]); // simetriği
                     });
 
-                    if (jsonDataArray.length) {
-                        x = x.map(v => v + maxCenterX);
-                        y = y.map(v => v + maxCenterY);
-                    }
+                    // Well Path verilerini yüzeyin merkezine göre kaydırma
+                    x = x.map(v => v + centerX);
+                    y = y.map(v => v + centerY);
 
                     const wellTrace = {
                         x: x,
@@ -285,171 +281,14 @@
                         name: 'Kuyu'
                     };
 
-                 
-                    const xMin = Math.min(...x);
-                    const xMax = Math.max(...x);
-                    const yMin = Math.min(...y);
-                    const yMax = Math.max(...y);
-                    const zMin = Math.min(...z);
-                    const zMax = Math.max(...z);
+                    const paletteSelect = document.getElementById('palette-select');
 
-                    const maxXYRange = Math.max(Math.abs(xMin), Math.abs(xMax), Math.abs(yMin), Math.abs(yMax)) * 2;
-                    const zRange = zMax * 1.1;
+                    paletteSelect.addEventListener('change', () => {
+                        updatePlot();
+                    });
 
-                    document.getElementById('xMin').textContent = `xMin: ${xMin}`;
-                    document.getElementById('xMax').textContent = `xMax: ${xMax}`;
-                    document.getElementById('yMin').textContent = `yMin: ${yMin}`;
-                    document.getElementById('yMax').textContent = `yMax: ${yMax}`;
-                    document.getElementById('zMin').textContent = `zMin: ${zMin}`;
-                    document.getElementById('zMax').textContent = `zMax: ${zMax}`;
-                    document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
-                    document.getElementById('zRange').textContent = `zRange: ${zRange}`;
-                    
-
-                    
-                    
-                
-                    const cone = {
-                        type: 'cone',        
-                        x: [maxXYRange-50],
-                        y: [0],
-                        z: [zMax],
-                        u: [0],
-                        v: [2],
-                        w: [0],
-                        colorscale: [[0, 'red'], [1, 'red']],
-
-                        sizemode: 'scaled',
-                        sizeref: 50,
-                        anchor: 'tail',
-                        showscale: false
-                    };
-                    const text = {
-                        x: [maxXYRange-50],
-                        y: [0],
-                        z: [zMax],
-                        mode: 'text',
-                        type: 'scatter3d',
-                        text: ['Kuzey'],
-                        textposition: 'top center',
-                        showlegend: false
-                    };
-                    const combinedData = [wellTrace, cone, text];
-
-                    const layout = {
-                        scene: {
-                            xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
-                            yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
-                            zaxis: { title: 'Z', range: [zRange, 0] }
-                        },
-                        title: '3D Well Path'
-                    };
-
-                    Plotly.newPlot('combined-plot', combinedData, layout);
-                    document.getElementById('palette-container').style.display = 'none';
-
-               
-                    if (jsonDataArray.length) {
-                        processJSONData(jsonDataArray, wellTrace);
-                    }
-                }
-            });
-        }
-
-        function processJSONData(jsonDataArray, wellTrace = null) {
-            const paletteSelect = document.getElementById('palette-select');
-
-            paletteSelect.addEventListener('change', () => {
-                updatePlot(jsonDataArray, wellTrace);
-            });
-
-            updatePlot(jsonDataArray, wellTrace);
-        }
-        function getSurfaceBounds(jsonDataArray) {
-            let minX = Infinity;
-            let minY = Infinity;
-            let maxZ = -Infinity;
-
-            jsonDataArray.forEach(data => {
-                const binsX = data.bins[0];
-                const binsY = data.bins[1];
-                const extentX = data.extent[0][0];
-                const extentY = data.extent[0][1];
-                const points = data.points;
-
-                for (let i = 0; i < binsX; i++) {
-                    const x = extentX + i * data.increment[0];
-                    if (x < minX) {
-                        minX = x;
-                    }
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    const y = extentY + j * data.increment[1];
-                    if (y < minY) {
-                        minY = y;
-                    }
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    for (let i = 0; i < binsX; i++) {
-                        if (points[j * binsX + i] > maxZ) {
-                            maxZ = points[j * binsX + i];
-                        }
-                    }
-                }
-            });
-
-            return { minX, minY, maxZ };
-        }
-
-        function addDirectionArrow(minX, minY, maxZ) {
-            /*const line = {
-                x: [minX, minX],  
-                y: [minY, minY+5],  
-                z: [maxZ, maxZ], 
-                mode: 'lines+text',
-                type: 'scatter3d',
-                text: ['Kuzey'],
-                textposition: 'top center',
-                line: {
-                    color: 'red',
-                    width: 10    
-                },
-                showlegend: false
-            };*/
-
-            const cone = {
-                type: 'cone',        
-                x: [minX],
-                y: [minY + 5000],
-                z: [maxZ],
-                u: [0],
-                v: [25],
-                w: [0],
-                colorscale: [[0, 'red'], [1, 'red']],
-
-                sizemode: 'scaled',
-                sizeref: 100,
-                anchor: 'tail',
-                showscale: false
-            };
-            const text = {
-                x: [minX],
-                y: [minY + 5000],
-                z: [maxZ],
-                mode: 'text',
-                type: 'scatter3d',
-                text: ['Kuzey'],
-                textposition: 'top center',
-                showlegend: false
-            };
-
-            return  {cone,text} ;
-        }
-
-        function updatePlot(jsonDataArray, wellTrace = null) {
-            const selectedPalette = document.getElementById('palette-select').value;
+                    function updatePlot() {
+                        const selectedPalette = paletteSelect.value;
 
             const surfaceTraces = jsonDataArray.map((data, index) => {
                 const binsX = data.bins[0];
@@ -470,71 +309,75 @@
                     y.push(extentY + j * data.increment[1]);
                 }
 
-                for (let j = 0; j < binsY; j++) {
-                    let row = [];
-                    for (let i = 0; i < binsX; i++) {
-                        row.push(points[j * binsX + i]);
-                    }
-                    z.push(row);
-                }
+                            for (let j = 0; j < binsY; j++) {
+                                let row = [];
+                                for (let i = 0; i < binsX; i++) {
+                                    row.push(points[j * binsX + i]);
+                                }
+                                z.push(row);
+                            }
+                            return {
+                                z: z,
+                                x: x,
+                                y: y,
+                                type: 'surface',
+                                colorscale: selectedPalette, // Seçilen renk skalası
+                                name: `Surface ${index + 1}`,
+                                colorbar: {
+                                    len: 0.6, // Renk çubuğunun uzunluğunu ayarlayabilirsiniz
+                                    thickness: 10, // Renk çubuğunun kalınlığı
+                                    tickfont: {
+                                        size: 12, // Yazı boyutunu küçülttük
+                                        color: 'black' // Yazı rengi
+                                    },
+                                    title: {
+                                        text: `Surface ${index + 1}`, // Renk çubuğu başlığı
+                                        font: {
+                                            size: 12, // Başlık yazı boyutu
+                                            color: 'black' // Başlık yazı rengi
+                                        },
+                                        side: 'right'
+                                    },
+                                    x: 1.7 + index * 0.20, // Renk çubuğunu yatayda kaydır
+                                    y: 0.7 // Tüm renk çubuklarını aynı hizaya getirin
+                                }
+                            };
 
-                return {
-                    z: z,
-                    x: x,
-                    y: y,
-                    type: 'surface',
-                    colorscale: selectedPalette,
-                    name: `Surface ${index + 1}`,
-                    colorbar: {
-                        len: 0.6,
-                        thickness: 10,
-                        tickfont: {
-                            size: 12,
-                            color: 'black'
-                        },
-                        title: {
-                            text: `Surface ${index + 1}`,
-                            font: {
-                                size: 12,
-                                color: 'black'
+                        });
+
+
+                        // Add direction arrow
+                        const arrowTrace = {
+                            type: 'scatter3d',
+                            mode: 'lines',
+                            x: [centerX, centerX],
+                            y: [centerY, centerY + 2000], // Burada boyutu artırdık
+                            z: [surfaceData.extent[1][2], surfaceData.extent[1][2]],
+                            line: {
+                                color: 'red',
+                                width: 4
                             },
-                            side: 'right'
-                        },
-                        x: 1.7 + index * 0.20,
-                        y: 0.7
-                    }
-                };
-            });
+                            name: 'Kuzey Yönü'
+                        };
 
-            const combinedData = [...surfaceTraces];
-            if (wellTrace) {
-                combinedData.push(wellTrace);
-            }
-
-            const { minX, minY, maxZ } = getSurfaceBounds(jsonDataArray);
-            
-            const { cone, text } = addDirectionArrow(minX, minY, maxZ);
-            //combinedData.push(line);  // Çizgiyi veri dizisine ekle
-            combinedData.push(cone);  // Koniyi veri dizisine ekle
-            combinedData.push(text);  // Metni veri dizisine ekle
-            const layout = {
-                title: 'Kuyu Ve Yüzey Görselleştirmesi',
-                showlegend: true,
-                scene: {
-                    xaxis: { title: 'X Axis' },
-                    yaxis: { title: 'Y Axis' },
-                    zaxis: { title: 'Z Axis', range: [maxZ,0] }
-                }
-            };
+                        const layout = {
+                            title: 'Kuyu Ve Yüzey Görselleştirmesi',
+                            showlegend: true,
+                            scene: {
+                                xaxis: { title: 'X Axis' },
+                                yaxis: { title: 'Y Axis' },
+                                zaxis: { title: 'Z Axis' }
+                            }
+                        };
 
             Plotly.newPlot('combined-plot', combinedData, layout);
             document.getElementById('palette-container').style.display = 'block';
         }
 
-
-        
-
-
+                    updatePlot();
+                }
+            });
+        }
     </script>
 </body>
 </html>

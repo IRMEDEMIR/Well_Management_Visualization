@@ -316,6 +316,7 @@
                     };
 
                     Plotly.newPlot('combined-plot', [wellTrace], layout);
+                    document.getElementById('palette-container').style.display = 'none';
 
                
                     if (jsonDataArray.length) {
@@ -324,7 +325,6 @@
                 }
             });
         }
-
 
         function processJSONData(jsonDataArray, wellTrace = null) {
             const paletteSelect = document.getElementById('palette-select');
@@ -335,85 +335,6 @@
 
             updatePlot(jsonDataArray, wellTrace);
         }
-
-        function updatePlot(jsonDataArray, wellTrace = null) {
-            const selectedPalette = document.getElementById('palette-select').value;
-
-            const surfaceTraces = jsonDataArray.map((data, index) => {
-                const binsX = data.bins[0];
-                const binsY = data.bins[1];
-                const extentX = data.extent[0][0];
-                const extentY = data.extent[0][1];
-                const points = data.points;
-
-                let x = [];
-                let y = [];
-                let z = [];
-
-                for (let i = 0; i < binsX; i++) {
-                    x.push(extentX + i * data.increment[0]);
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    y.push(extentY + j * data.increment[1]);
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    let row = [];
-                    for (let i = 0; i < binsX; i++) {
-                        row.push(points[j * binsX + i]);
-                    }
-                    z.push(row);
-                }
-
-                return {
-                    z: z,
-                    x: x,
-                    y: y,
-                    type: 'surface',
-                    colorscale: selectedPalette,
-                    name: `Surface ${index + 1}`,
-                    colorbar: {
-                        len: 0.6,
-                        thickness: 10,
-                        tickfont: {
-                            size: 12,
-                            color: 'black'
-                        },
-                        title: {
-                            text: `Surface ${index + 1}`,
-                            font: {
-                                size: 12,
-                                color: 'black'
-                            },
-                            side: 'right'
-                        },
-                        x: 1.7 + index * 0.20,
-                        y: 0.7
-                    }
-                };
-            });
-
-            const combinedData = surfaceTraces;
-            if (wellTrace) {
-                combinedData.push(wellTrace);
-            }
-
-            const layout = {
-                title: 'Kuyu Ve Yüzey Görselleştirmesi',
-                showlegend: true,
-                scene: {
-                    xaxis: { title: 'X Axis' },
-                    yaxis: { title: 'Y Axis' },
-                    zaxis: { title: 'Z Axis' }
-                }
-            };
-
-            Plotly.newPlot('combined-plot', combinedData, layout);
-            document.getElementById('palette-container').style.display = 'block';
-        }
-
-
 
         function updatePlot(jsonDataArray, wellTrace = null) {
             const selectedPalette = document.getElementById('palette-select').value;

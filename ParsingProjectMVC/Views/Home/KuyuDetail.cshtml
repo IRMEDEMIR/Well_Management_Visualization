@@ -9,100 +9,35 @@
     <title>@ViewData["Title"]</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <style>
-        #drop-zone {
-            border: 2px dashed #007bff;
-            border-radius: 5px;
-            padding: 20px;
-            text-align: center;
-            margin: 20px;
-            font-size: 18px;
-            color: #007bff;
-        }
-
-        #graph-container {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        #values {
-            margin-top: 20px;
-            background: #ffffff;
-            border-radius: 5px;
-            padding: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        #palette-container {
-            display: none;
-            margin: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-            #palette-container label {
-                font-size: 16px;
-                font-weight: bold;
-                margin-right: 10px;
-            }
-
-            #palette-container select {
-                padding: 5px;
-                font-size: 16px;
-                border-radius: 5px;
-                border: 1px solid #ced4da;
-                background: #ffffff;
-                cursor: pointer;
-                transition: background-color 0.3s, border-color 0.3s;
-            }
-
-                #palette-container select:hover {
-                    background-color: #e9ecef;
-                    border-color: #adb5bd;
-                }
-    </style>
 </head>
+<style>
+    #drop-zone {
+        border: 2px dashed #007bff;
+        border-radius: 5px;
+        padding: 20px;
+        text-align: center;
+        margin: 20px;
+        font-size: 18px;
+        color: #007bff;
+    }
+</style>
 <body>
-    <div id="container">
-        <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
-        <div id="palette-container">
-            <label for="palette-select">Renk Paleti Seçiniz:</label>
-            <select id="palette-select">
-                <option value="Viridis">Viridis</option>
-                <option value="Cividis">Cividis</option>
-                <option value="Plasma">Plasma</option>
-                <option value="Inferno">Inferno</option>
-                <option value="Magma">Magma</option>
-                <option value="Rainbow">Rainbow</option>
-                <option value="Jet">Jet</option>
-                <option value="Hot">Hot</option>
-                <option value="Electric">Electric</option>
-                <option value="Earth">Earth</option>
-                <option value="YlGnBu">YlGnBu</option>
-                <option value="YlOrRd">YlOrRd</option>
-            </select>
-        </div>
-        <div id="graph-container">
-            <div id="combined-plot" style="max-width: 900px; height: 650px;"></div>
-        </div>
-        <input type="file" id="file-input" style="display:none;" />
-        <div id="values">
-            <h3>Hesaplanan Değerler:</h3>
-            <p id="xMin"></p>
-            <p id="xMax"></p>
-            <p id="yMin"></p>
-            <p id="yMax"></p>
-            <p id="zMin"></p>
-            <p id="zMax"></p>
-            <p id="maxXYRange"></p>
-            <p id="zRange"></p>
-        </div>
+    <div id="drop-zone">Sürükleyip bırakın veya dosya seçin</div>
+    <div id="well-3d-plot" style="width: 700px; height: 600px;"></div>
+    <input type="file" id="file-input" style="display:none;" />
+    <div id="values" style="margin-top: 20px;">
+        <h3>Computed Values:</h3>
+        <p id="xMin"></p>
+        <p id="xMax"></p>
+        <p id="yMin"></p>
+        <p id="yMax"></p>
+        <p id="zMin"></p>
+        <p id="zMax"></p>
+        <p id="maxXYRange"></p>
+        <p id="zRange"></p>
     </div>
     <script>
+
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
 
@@ -135,46 +70,8 @@
             fileInput.click();
         });
 
-        function handleFiles(files) {
-            const jsonFiles = [];
-            let csvFile = null;
-
-            Array.from(files).forEach(file => {
-                if (file.type === 'application/json' || file.name.endsWith('.json')) {
-                    jsonFiles.push(file);
-                } else if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-                    csvFile = file;
-                } else {
-                    alert('Sadece JSON ve CSV dosyaları kabul edilir.');
-                }
-            });
-
-            const jsonReaders = [];
-            const jsonDataArray = [];
-
-            if (jsonFiles.length) {
-                jsonFiles.forEach((file, index) => {
-                    const reader = new FileReader();
-                    jsonReaders.push(reader);
-                    reader.onload = (event) => {
-                        const jsonData = JSON.parse(event.target.result);
-                        jsonDataArray.push(jsonData);
-                        if (jsonDataArray.length === jsonFiles.length) {
-                            if (csvFile) {
-                                loadCSVData(csvFile, jsonDataArray);
-                            } else {
-                                processJSONData(jsonDataArray);
-                            }
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            } else if (csvFile) {
-                loadCSVData(csvFile, jsonDataArray);
-            }
-        }
-
-        function loadCSVData(csvFile, jsonDataArray) {
+        // Dosya işleme
+        function handleFile(file) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const csvText = event.target.result;
@@ -183,12 +80,18 @@
             reader.readAsText(csvFile);
         }
 
-        function processCSV(csvText, jsonDataArray) {
-            Papa.parse(csvText, {
-                header: false,
-                skipEmptyLines: true,
-                complete: function (results) {
-                    const data = results.data;
+        // CSV dosyasını yükleyip işleyen fonksiyon
+        function processCSV(csvText) {
+            try {
+                console.log("Parsing CSV file...");
+
+                // PapaParse kullanarak CSV dosyasını ayrıştırma
+                Papa.parse(csvText, {
+                    header: false, // İlk satırı başlık olarak almayacağız
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        console.log("CSV parsing complete.");
+                        const data = results.data;
 
                     const wellpathStartIndex = data.findIndex(row => row.includes('Wellpath Report'));
                     if (wellpathStartIndex === -1) {
@@ -196,35 +99,18 @@
                         return;
                     }
 
-                    const headers = data[wellpathStartIndex + 1];
-                    const wellpathData = data.slice(wellpathStartIndex + 2);
+                        console.log("Wellpath Report found at index:", wellpathStartIndex);
 
-                    let maxCenterX = 0;
-                    let maxCenterY = 0;
-                    let maxExtentZ = 0;
+                        const headers = data[wellpathStartIndex + 1]; // Sütun başlıkları
+                        const wellpathData = data.slice(wellpathStartIndex + 2); // Veriler
 
-                    if (jsonDataArray.length) {
-                        for (let i = 0; i < jsonDataArray.length; i++) {
-                            const surfaceData = jsonDataArray[i];
-                            const centerX = (surfaceData.extent[0][0] + surfaceData.extent[1][0]) / 2;
-                            const centerY = (surfaceData.extent[0][1] + surfaceData.extent[1][1]) / 2;
-                            const currentExtentZ = surfaceData.extent[1][2];
-                            if (centerX > maxCenterX) {
-                                maxCenterX = centerX;
-                            }
-                            if (centerY > maxCenterY) {
-                                maxCenterY = centerY;
-                            }
-                            if (currentExtentZ > maxExtentZ) {
-                                maxExtentZ = currentExtentZ;
-                            }
-                        }
-                    }
+                        console.log("Headers:", headers);
+                        console.log("Wellpath data:", wellpathData);
 
-                    let x = [];
-                    let y = [];
-                    let z = [];
-                    const directions = [];
+                        // Belirli sütunları seç ve x, y, z koordinatlarını hesapla
+                        const x = [];
+                        const y = [];
+                        const z = [];
 
                     let previousX = 0;
                     let previousY = 0;
@@ -250,246 +136,84 @@
 
                         const aziRad = aziDeg * (Math.PI / 180);
 
-                        if (aziDeg === 0 && x.length > 0 && y.length > 0) {
-                            x.push(previousX);
-                            y.push(previousY);
-                        } else {
-                            previousX = verticalSection * Math.sin(aziRad);
-                            previousY = verticalSection * Math.cos(aziRad);
-                            x.push(previousX);
-                            y.push(previousY);
-                        }
-                        if(jsonDataArray.length){
-                            z.push(maxExtentZ-tvd);
-                        }
-                        else{
+                            if (aziDeg === 0 && x.length > 0 && y.length > 0) {
+                                x.push(previousX);
+                                y.push(previousY);
+                            } else {
+                                previousX = verticalSection * Math.sin(aziRad);
+                                previousY = verticalSection * Math.cos(aziRad);
+                                x.push(previousX);
+                                y.push(previousY);
+                            }
                             z.push(tvd);
-                        }
-                        directions.push(aziDeg);
-                    });
+                        });
 
-                    if (jsonDataArray.length) {
-                        x = x.map(v => v + maxCenterX);
-                        y = y.map(v => v + maxCenterY);
-                    }
+                        console.log("x coordinates:", x);
+                        console.log("y coordinates:", y);
+                        console.log("z coordinates:", z);
 
-                    const wellTrace = {
-                        x: x,
-                        y: y,
-                        z: z,
-                        mode: 'lines',
-                        type: 'scatter3d',
-                        line: {
-                            color: 'blue',
-                            width: 5
-                        },
-                        name: 'Kuyu'
-                    };
+                        // 3D grafik çizimi
+                        const trace = {
+                            x: x,
+                            y: y,
+                            z: z,
+                            mode: 'lines',
+                            type: 'scatter3d',
+                            line: {
+                                color: 'blue',
+                                width: 6
+                            }
+                        };
 
-                    
-                    const xMin = Math.min(...x);
-                    const xMax = Math.max(...x);
-                    const yMin = Math.min(...y);
-                    const yMax = Math.max(...y);
-                    const zMin = Math.min(...z);
-                    const zMax = Math.max(...z);
+                        // Eksen aralıklarını belirlemek için min ve max değerleri
+                        const xMin = Math.min(...x);
+                        const xMax = Math.max(...x);
+                        const yMin = Math.min(...y);
+                        const yMax = Math.max(...y);
+                        const zMin = Math.min(...z);
+                        const zMax = Math.max(...z);
 
-                    const maxXYRange = Math.max(Math.abs(xMin), Math.abs(xMax), Math.abs(yMin), Math.abs(yMax)) * 2;
-                    const zRange = zMax * 1.1;
+                        // X ve Y ekseni aralıklarını ayarlamak için maksimum değeri belirleyelim
+                        const maxXYRange = Math.max(Math.abs(xMin), Math.abs(xMax), Math.abs(yMin), Math.abs(yMax)) * 2;
+                        const zRange = zMax * 1.1;
 
-                    document.getElementById('xMin').textContent = `xMin: ${xMin}`;
-                    document.getElementById('xMax').textContent = `xMax: ${xMax}`;
-                    document.getElementById('yMin').textContent = `yMin: ${yMin}`;
-                    document.getElementById('yMax').textContent = `yMax: ${yMax}`;
-                    document.getElementById('zMin').textContent = `zMin: ${zMin}`;
-                    document.getElementById('zMax').textContent = `zMax: ${zMax}`;
-                    document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
-                    document.getElementById('zRange').textContent = `zRange: ${zRange}`;
+                        // Computed values, log them to console
+                        console.log("xMin:", xMin);
+                        console.log("xMax:", xMax);
+                        console.log("yMin:", yMin);
+                        console.log("yMax:", yMax);
+                        console.log("zMin:", zMin);
+                        console.log("zMax:", zMax);
+                        console.log("maxXYRange:", maxXYRange);
+                        console.log("zRange:", zRange);
 
-                    const layout = {
-                        scene: {
-                            xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
-                            yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
-                            zaxis: { title: 'Z', range: [zRange, 0] }
-                        },
-                        title: '3D Well Path'
-                    };
+                        // Display the computed values on the webpage
+                        document.getElementById('xMin').textContent = `xMin: ${xMin}`;
+                        document.getElementById('xMax').textContent = `xMax: ${xMax}`;
+                        document.getElementById('yMin').textContent = `yMin: ${yMin}`;
+                        document.getElementById('yMax').textContent = `yMax: ${yMax}`;
+                        document.getElementById('zMin').textContent = `zMin: ${zMin}`;
+                        document.getElementById('zMax').textContent = `zMax: ${zMax}`;
+                        document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
+                        document.getElementById('zRange').textContent = `zRange: ${zRange}`;
 
-                    Plotly.newPlot('combined-plot', [wellTrace], layout);
-
-                    
-                    if (jsonDataArray.length) {
-                        processJSONData(jsonDataArray, wellTrace);
-                    }
-                }
-            });
-        }
-
-
-        function processJSONData(jsonDataArray, wellTrace = null) {
-            const paletteSelect = document.getElementById('palette-select');
-
-            paletteSelect.addEventListener('change', () => {
-                updatePlot(jsonDataArray, wellTrace);
-            });
-
-            updatePlot(jsonDataArray, wellTrace);
-        }
-
-        function updatePlot(jsonDataArray, wellTrace = null) {
-            const selectedPalette = document.getElementById('palette-select').value;
-
-            const surfaceTraces = jsonDataArray.map((data, index) => {
-                const binsX = data.bins[0];
-                const binsY = data.bins[1];
-                const extentX = data.extent[0][0];
-                const extentY = data.extent[0][1];
-                const points = data.points;
-
-                let x = [];
-                let y = [];
-                let z = [];
-
-                for (let i = 0; i < binsX; i++) {
-                    x.push(extentX + i * data.increment[0]);
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    y.push(extentY + j * data.increment[1]);
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    let row = [];
-                    for (let i = 0; i < binsX; i++) {
-                        row.push(points[j * binsX + i]);
-                    }
-                    z.push(row);
-                }
-
-                return {
-                    z: z,
-                    x: x,
-                    y: y,
-                    type: 'surface',
-                    colorscale: selectedPalette,
-                    name: `Surface ${index + 1}`,
-                    colorbar: {
-                        len: 0.6,
-                        thickness: 10,
-                        tickfont: {
-                            size: 12,
-                            color: 'black'
-                        },
-                        title: {
-                            text: `Surface ${index + 1}`,
-                            font: {
-                                size: 12,
-                                color: 'black'
+                        const layout = {
+                            scene: {
+                                xaxis: { title: 'X', range: [-maxXYRange, maxXYRange] },
+                                yaxis: { title: 'Y', range: [-maxXYRange, maxXYRange] },
+                                zaxis: { title: 'Z', range: [zRange,0] }
                             },
-                            side: 'right'
-                        },
-                        x: 1.7 + index * 0.20,
-                        y: 0.7
-                    }
-                };
-            });
+                            title: '3D Well Path'
+                        };
 
-            const combinedData = surfaceTraces;
-            if (wellTrace) {
-                combinedData.push(wellTrace);
+                        console.log("Plotting data...");
+                        Plotly.newPlot('well-3d-plot', [trace], layout);
+                        console.log("Plotting complete.");
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading or processing CSV data:', error);
             }
-
-            const layout = {
-                title: 'Kuyu Ve Yüzey Görselleştirmesi',
-                showlegend: true,
-                scene: {
-                    xaxis: { title: 'X Axis' },
-                    yaxis: { title: 'Y Axis' },
-                    zaxis: { title: 'Z Axis' }
-                }
-            };
-
-            Plotly.newPlot('combined-plot', combinedData, layout);
-            document.getElementById('palette-container').style.display = 'block';
-        }
-
-
-
-        function updatePlot(jsonDataArray, wellTrace = null) {
-            const selectedPalette = document.getElementById('palette-select').value;
-
-            const surfaceTraces = jsonDataArray.map((data, index) => {
-                const binsX = data.bins[0];
-                const binsY = data.bins[1];
-                const extentX = data.extent[0][0];
-                const extentY = data.extent[0][1];
-                const points = data.points;
-
-                let x = [];
-                let y = [];
-                let z = [];
-
-                for (let i = 0; i < binsX; i++) {
-                    x.push(extentX + i * data.increment[0]);
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    y.push(extentY + j * data.increment[1]);
-                }
-
-                for (let j = 0; j < binsY; j++) {
-                    let row = [];
-                    for (let i = 0; i < binsX; i++) {
-                        row.push(points[j * binsX + i]);
-                    }
-                    z.push(row);
-                }
-
-                return {
-                    z: z,
-                    x: x,
-                    y: y,
-                    type: 'surface',
-                    colorscale: selectedPalette,
-                    name: `Surface ${index + 1}`,
-                    colorbar: {
-                        len: 0.6,
-                        thickness: 10,
-                        tickfont: {
-                            size: 12,
-                            color: 'black'
-                        },
-                        title: {
-                            text: `Surface ${index + 1}`,
-                            font: {
-                                size: 12,
-                                color: 'black'
-                            },
-                            side: 'right'
-                        },
-                        x: 1.7 + index * 0.20,
-                        y: 0.7
-                    }
-                };
-            });
-
-            const combinedData = surfaceTraces;
-            if (wellTrace) {
-                combinedData.push(wellTrace);
-            }
-
-            const layout = {
-                title: 'Kuyu Ve Yüzey Görselleştirmesi',
-                showlegend: true,
-                scene: {
-                    xaxis: { title: 'X Axis' },
-                    yaxis: { title: 'Y Axis' },
-                    zaxis: { title: 'Z Axis' }
-                }
-            };
-
-            Plotly.newPlot('combined-plot', combinedData, layout);
-            document.getElementById('palette-container').style.display = 'block';
         }
     </script>
 </body>

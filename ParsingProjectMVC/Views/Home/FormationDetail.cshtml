@@ -30,15 +30,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const data = [
-                { state: "California", age: "<10", population: 1000000 },
-                { state: "California", age: "10-20", population: 2000000 },
-                { state: "California", age: "20-30", population: 1500000 },
-                { state: "New York", age: "<10", population: 500000 },
-                { state: "New York", age: "10-20", population: 1000000 },
-                { state: "New York", age: "20-30", population: 800000 },
-                { state: "Texas", age: "<10", population: 700000 },
-                { state: "Texas", age: "10-20", population: 1200000 },
-                { state: "Texas", age: "20-30", population: 1100000 }
+                { state: "Kuyu", formasyon: "ŞELMO", depth: 231},
+                { state: "Kuyu", formasyon: "MİDYAT GRUBU", depth: 852 },
+                { state: "Kuyu", formasyon: "GERCÜŞ", depth: 1087 },
+                { state: "Kuyu", formasyon: "ÜST SINAN", depth: 1579 },
+                { state: "Kuyu", formasyon: "ANTAK", depth: 1598 },
+                { state: "Kuyu", formasyon: "ALT SİNAN + GARZAN", depth: 1890 },
+                { state: "Kuyu", formasyon: "TERBÜZEK", depth: 2047 },
+                { state: "Kuyu", formasyon: "KASTEL", depth: 2524 },
+                { state: "Kuyu", formasyon: "SAYINDERE", depth: 2644 },
+                { state: "Kuyu", formasyon: "KARABABA", depth: 2668 },
+                { state: "Kuyu", formasyon: "DERDERE", depth: 2709 }
             ];
 
             const width = 928;
@@ -49,12 +51,12 @@
             const marginLeft = 40;
 
             const series = d3.stack()
-                .keys(d3.union(data.map(d => d.age)))
-                .value(([, D], key) => D.get(key).population)
-                (d3.index(data, d => d.state, d => d.age));
+                .keys(d3.union(data.map(d => d.formasyon)))
+                .value(([, D], key) => D.get(key).depth)
+                (d3.index(data, d => d.state, d => d.formasyon));
 
             const x = d3.scaleBand()
-                .domain(d3.groupSort(data, D => -d3.sum(D, d => d.population), d => d.state))
+                .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
                 .range([marginLeft, width - marginRight])
                 .padding(0.1);
 
@@ -86,7 +88,7 @@
                 .attr("height", d => y(d[0]) - y(d[1]))
                 .attr("width", x.bandwidth())
                 .append("title")
-                .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).population.toLocaleString("en")}`);
+                .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("en")}`);
 
             svg.append("g")
                 .attr("transform", `translate(0,${height - marginBottom})`)

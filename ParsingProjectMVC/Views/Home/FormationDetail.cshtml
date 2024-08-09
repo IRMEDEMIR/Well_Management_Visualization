@@ -1,5 +1,103 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Formasyon Görselleştirmesi";
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #plot {
+            width: 100%;
+            height: 500px;
+        }
+
+        .axis text {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+
+<body>
+    <h3>Formasyon Görselleştirmesi</h3>
+    <div id="plot"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const data = [
+                { state: "California", age: "<10", population: 1000000 },
+                { state: "California", age: "10-20", population: 2000000 },
+                { state: "California", age: "20-30", population: 1500000 },
+                { state: "New York", age: "<10", population: 500000 },
+                { state: "New York", age: "10-20", population: 1000000 },
+                { state: "New York", age: "20-30", population: 800000 },
+                { state: "Texas", age: "<10", population: 700000 },
+                { state: "Texas", age: "10-20", population: 1200000 },
+                { state: "Texas", age: "20-30", population: 1100000 }
+            ];
+
+            const width = 928;
+            const height = 500;
+            const marginTop = 10;
+            const marginRight = 10;
+            const marginBottom = 20;
+            const marginLeft = 40;
+
+            const series = d3.stack()
+                .keys(d3.union(data.map(d => d.age)))
+                .value(([, D], key) => D.get(key).population)
+                (d3.index(data, d => d.state, d => d.age));
+
+            const x = d3.scaleBand()
+                .domain(d3.groupSort(data, D => -d3.sum(D, d => d.population), d => d.state))
+                .range([marginLeft, width - marginRight])
+                .padding(0.1);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+                .rangeRound([height - marginBottom, marginTop]);
+
+            const color = d3.scaleOrdinal()
+                .domain(series.map(d => d.key))
+                .range(d3.schemeSpectral[series.length])
+                .unknown("#ccc");
+
+            const svg = d3.select("#plot").append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [0, 0, width, height])
+                .attr("style", "max-width: 100%; height: auto;");
+
+            svg.append("g")
+                .selectAll("g")
+                .data(series)
+                .join("g")
+                .attr("fill", d => color(d.key))
+                .selectAll("rect")
+                .data(D => D.map(d => (d.key = D.key, d)))
+                .join("rect")
+                .attr("x", d => x(d.data[0]))
+                .attr("y", d => y(d[1]))
+                .attr("height", d => y(d[0]) - y(d[1]))
+                .attr("width", x.bandwidth())
+                .append("title")
+                .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).population.toLocaleString("en")}`);
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height - marginBottom})`)
+                .call(d3.axisBottom(x).tickSizeOuter(0))
+                .call(g => g.selectAll(".domain").remove());
+
+            svg.append("g")
+                .attr("transform", `translate(${marginLeft},0)`)
+                .call(d3.axisLeft(y).ticks(null, "s"))
+                .call(g => g.selectAll(".domain").remove());
+        });
+    </script>
+</body>
+</html>

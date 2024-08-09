@@ -30,20 +30,20 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const data = [
-                { state: "Kuyu", formasyon: "ŞELMO", depth: 231},
-                { state: "Kuyu", formasyon: "MİDYAT GRUBU", depth: 852 },
-                { state: "Kuyu", formasyon: "GERCÜŞ", depth: 1087 },
-                { state: "Kuyu", formasyon: "ÜST SINAN", depth: 1579 },
-                { state: "Kuyu", formasyon: "ANTAK", depth: 1598 },
-                { state: "Kuyu", formasyon: "ALT SİNAN + GARZAN", depth: 1890 },
-                { state: "Kuyu", formasyon: "TERBÜZEK", depth: 2047 },
-                { state: "Kuyu", formasyon: "KASTEL", depth: 2524 },
-                { state: "Kuyu", formasyon: "SAYINDERE", depth: 2644 },
-                { state: "Kuyu", formasyon: "KARABABA", depth: 2668 },
-                { state: "Kuyu", formasyon: "DERDERE", depth: 2709 }
+                { state: "Kuyu", formasyon: "ŞELMO", depth: 231 },
+                { state: "Kuyu", formasyon: "MİDYAT GRUBU", depth: 621 },
+                { state: "Kuyu", formasyon: "GERCÜŞ", depth: 235 },
+                { state: "Kuyu", formasyon: "ÜST SINAN", depth: 492 },
+                { state: "Kuyu", formasyon: "ANTAK", depth: 19 },
+                { state: "Kuyu", formasyon: "ALT SİNAN + GARZAN", depth: 292 },
+                { state: "Kuyu", formasyon: "TERBÜZEK", depth: 157 },
+                { state: "Kuyu", formasyon: "KASTEL", depth: 477 },
+                { state: "Kuyu", formasyon: "SAYINDERE", depth: 120 },
+                { state: "Kuyu", formasyon: "KARABABA", depth: 24 },
+                { state: "Kuyu", formasyon: "DERDERE", depth: 41 }
             ];
 
-            const width = 928;
+            const width = 300;
             const height = 500;
             const marginTop = 10;
             const marginRight = 10;
@@ -62,7 +62,7 @@
 
             const y = d3.scaleLinear()
                 .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                .rangeRound([height - marginBottom, marginTop]);
+                .range([marginTop, height - marginBottom]);
 
             const color = d3.scaleOrdinal()
                 .domain(series.map(d => d.key))
@@ -84,8 +84,8 @@
                 .data(D => D.map(d => (d.key = D.key, d)))
                 .join("rect")
                 .attr("x", d => x(d.data[0]))
-                .attr("y", d => y(d[1]))
-                .attr("height", d => y(d[0]) - y(d[1]))
+                .attr("y", d => y(d[0])) 
+                .attr("height", d => y(d[1]) - y(d[0])) 
                 .attr("width", x.bandwidth())
                 .append("title")
                 .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("en")}`);

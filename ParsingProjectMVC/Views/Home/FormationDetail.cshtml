@@ -42,7 +42,7 @@
                 { state: "Kuyu", formasyon: "DERDERE", depth: 41 }
             ];
 
-            const width = 928;
+            const width = 300;
             const height = 500;
             const marginTop = 10;
             const marginRight = 10;
@@ -61,7 +61,7 @@
 
             const y = d3.scaleLinear()
                 .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                .rangeRound([height - marginBottom, marginTop]);
+                .range([marginTop, height - marginBottom]);
 
             const color = d3.scaleOrdinal()
                 .domain(series.map(d => d.key))
@@ -83,8 +83,8 @@
                 .data(D => D.map(d => (d.key = D.key, d)))
                 .join("rect")
                 .attr("x", d => x(d.data[0]))
-                .attr("y", d => y(d[1]))
-                .attr("height", d => y(d[0]) - y(d[1]))
+                .attr("y", d => y(d[0]))
+                .attr("height", d => y(d[1]) - y(d[0]))
                 .attr("width", x.bandwidth())
                 .append("title")
                 .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("en")}`);

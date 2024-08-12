@@ -32,13 +32,7 @@
             text-align: center;
         }
 
-        #filename {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: #666;
-            font-size: 14px;
-        }
+
 
         .axis text {
             font-size: 10px;
@@ -54,8 +48,7 @@
         <div id="filename"></div>
     </div>
     <div id="plot"></div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+    <script>document.addEventListener('DOMContentLoaded', function () {
             const dropzone = document.getElementById('dropzone');
             const fileInput = document.getElementById('fileInput');
             const filenameDisplay = document.getElementById('filename');
@@ -112,6 +105,7 @@
                             state: "Kuyu", // Sabit değer
                             formasyon: d.Formasyon, // CSV'deki formasyon kolonu
                             depth: +d["Alt Derinlik (TVD)"]  // CSV'deki ilk derinlik kolonu
+                            
                         };
                     } else {
                         const previousDepth = +rawData[i - 1]["Alt Derinlik (TVD)"];
@@ -181,7 +175,6 @@
                     .call(d3.axisLeft(y).ticks(null, "s"))
                     .call(g => g.selectAll(".domain").remove());
             }
-        });
-    </script>
+        });</script>
 </body>
 </html>

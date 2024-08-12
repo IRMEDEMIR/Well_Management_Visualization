@@ -2,7 +2,7 @@
     ViewData["Title"] = "Formasyon Görselleştirmesi";
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +15,27 @@
         #plot {
             width: 100%;
             height: 500px;
+            border: 1px solid #ccc;
+        }
+
+        #dropzone {
+            width: 100%;
+            height: 100px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #filename {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: #666;
+            font-size: 14px;
         }
 
         .axis text {
@@ -26,30 +47,65 @@
 
 <body>
     <h3>Formasyon Görselleştirmesi</h3>
+    <div id="dropzone">
+        CSV dosyasını buraya sürükleyin
+        <div id="filename"></div>
+    </div>
     <div id="plot"></div>
-    <script>document.addEventListener('DOMContentLoaded', function () {
-            d3.dsv(";", "/data/Formasyonlar.csv").then(function (rawData) {
-                // CSV'den alınan verileri data dizisine dönüştürme
-                const data = rawData.map((d, i) => {
-                    // İlk satırın derinliği kendisiyle aynıdır çünkü önceki bir katman yok
-                    if (i === 0) {
-                        return {
-                            state: "Kuyu", // Sabit değer
-                            formasyon: d.Formasyon, // CSV'deki formasyon kolonu
-                            depth: +d["Alt Derinlik (TVD)"]  // CSV'deki ilk derinlik kolonu
-                        };
-                    } else {
-                        // Diğer satırlar için derinlik farkı hesaplanır
-                        const previousDepth = +rawData[i - 1]["Alt Derinlik (TVD)"];
-                        const currentDepth = +d["Alt Derinlik (TVD)"];
-                        return {
-                            state: "Kuyu", // Sabit değer
-                            formasyon: d.Formasyon, // CSV'deki formasyon kolonu
-                            depth: currentDepth - previousDepth  // Bir önceki derinlikten çıkarılarak hesaplanır
-                        };
-                    }
-                });
+    <script>const dropzone = document.getElementById('dropzone');
+        const filenameDisplay = document.getElementById('filename');
 
+        dropzone.addEventListener('dragover', function (event) {
+            event.preventDefault();
+            dropzone.style.borderColor = "#666";
+            dropzone.style.color = "#666";
+        });
+
+        dropzone.addEventListener('dragleave', function (event) {
+            dropzone.style.borderColor = "#ccc";
+            dropzone.style.color = "#ccc";
+        });
+
+        dropzone.addEventListener('drop', function (event) {
+            event.preventDefault();
+            dropzone.style.borderColor = "#ccc";
+            dropzone.style.color = "#ccc";
+
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                filenameDisplay.textContent = file.name;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const text = e.target.result;
+                    const rawData = d3.dsvFormat(";").parse(text);
+                    drawChart(rawData);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function drawChart(rawData) {
+            d3.select("#plot").select("svg").remove();  // Önceki grafiği temizle
+
+            // CSV'den alınan verileri data dizisine dönüştürme
+            const data = rawData.map((d, i) => {
+                if (i === 0) {
+                    return {
+                        state: "Kuyu", // Sabit değer
+                        formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                        depth: +d["Alt Derinlik (TVD)"]  // CSV'deki ilk derinlik kolonu
+                    };
+                } else {
+                    const previousDepth = +rawData[i - 1]["Alt Derinlik (TVD)"];
+                    const currentDepth = +d["Alt Derinlik (TVD)"];
+                    return {
+                        state: "Kuyu", // Sabit değer
+                        formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                        depth: currentDepth - previousDepth  // Bir önceki derinlikten çıkarılarak hesaplanır
+                    };
+                }
+            });
 
             const width = 300;
             const height = 500;
@@ -84,7 +140,6 @@
                 .attr("style", "max-width: 100%; height: auto;");
 
             svg.append("g")
-            
                 .selectAll("g")
                 .data(series)
                 .join("g")
@@ -108,7 +163,6 @@
                 .attr("transform", `translate(${marginLeft},0)`)
                 .call(d3.axisLeft(y).ticks(null, "s"))
                 .call(g => g.selectAll(".domain").remove());
-        });
-        });</script>
+        }</script>
 </body>
 </html>

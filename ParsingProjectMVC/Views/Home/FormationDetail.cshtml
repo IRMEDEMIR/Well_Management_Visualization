@@ -2,7 +2,7 @@
     ViewData["Title"] = "Formasyon Görselleştirmesi";
 }
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,14 +19,17 @@
         }
 
         #dropzone {
-            border: 2px dashed #007bff;
+            width: 100%;
+            height: 100px;
+            border: 2px dashed #ccc;
             border-radius: 5px;
-            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: #ccc;
             text-align: center;
-            margin: 20px;
-            font-size: 18px;
-            color:   #007bff;
-
         }
 
         #filename {
@@ -43,125 +46,142 @@
     </style>
     <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
-
 <body>
     <h3>Formasyon Görselleştirmesi</h3>
     <div id="dropzone">
-        CSV dosyasını buraya sürükleyin
+        CSV dosyasını buraya sürükleyin veya seçin
+        <input type="file" id="fileInput" style="display: none;">
         <div id="filename"></div>
     </div>
     <div id="plot"></div>
-    <script>const dropzone = document.getElementById('dropzone');
-        const filenameDisplay = document.getElementById('filename');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('fileInput');
+            const filenameDisplay = document.getElementById('filename');
 
-        dropzone.addEventListener('dragover', function (event) {
-            event.preventDefault();
-            dropzone.style.borderColor = "#666";
-            dropzone.style.color = "#666";
-        });
-
-        dropzone.addEventListener('dragleave', function (event) {
-            dropzone.style.borderColor = "#ccc";
-            dropzone.style.color = "#ccc";
-        });
-
-        dropzone.addEventListener('drop', function (event) {
-            event.preventDefault();
-            dropzone.style.borderColor = "#ccc";
-            dropzone.style.color = "#ccc";
-
-            const file = event.dataTransfer.files[0];
-            if (file) {
-                filenameDisplay.textContent = file.name;
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const text = e.target.result;
-                    const rawData = d3.dsvFormat(";").parse(text);
-                    drawChart(rawData);
-                };
-                reader.readAsText(file);
-            }
-        });
-
-        function drawChart(rawData) {
-            d3.select("#plot").select("svg").remove();  // Önceki grafiği temizle
-
-            // CSV'den alınan verileri data dizisine dönüştürme
-            const data = rawData.map((d, i) => {
-                if (i === 0) {
-                    return {
-                        state: "Kuyu", // Sabit değer
-                        formasyon: d.Formasyon, // CSV'deki formasyon kolonu
-                        depth: +d["Alt Derinlik (TVD)"]  // CSV'deki ilk derinlik kolonu
-                    };
-                } else {
-                    const previousDepth = +rawData[i - 1]["Alt Derinlik (TVD)"];
-                    const currentDepth = +d["Alt Derinlik (TVD)"];
-                    return {
-                        state: "Kuyu", // Sabit değer
-                        formasyon: d.Formasyon, // CSV'deki formasyon kolonu
-                        depth: currentDepth - previousDepth  // Bir önceki derinlikten çıkarılarak hesaplanır
-                    };
-                }
+            dropzone.addEventListener('click', function () {
+                fileInput.click();
             });
 
-            const width = 300;
-            const height = 500;
-            const marginTop = 10;
-            const marginRight = 10;
-            const marginBottom = 20;
-            const marginLeft = 40;
+            dropzone.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                dropzone.style.borderColor = "#666";
+                dropzone.style.color = "#666";
+            });
 
-            const series = d3.stack()
-                .keys(d3.union(data.map(d => d.formasyon)))
-                .value(([, D], key) => D.get(key).depth)
-                (d3.index(data, d => d.state, d => d.formasyon));
+            dropzone.addEventListener('dragleave', function (event) {
+                dropzone.style.borderColor = "#ccc";
+                dropzone.style.color = "#ccc";
+            });
 
-            const x = d3.scaleBand()
-                .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
-                .range([marginLeft, width - marginRight])
-                .padding(0.1);
+            dropzone.addEventListener('drop', function (event) {
+                event.preventDefault();
+                dropzone.style.borderColor = "#ccc";
+                dropzone.style.color = "#ccc";
 
-            const y = d3.scaleLinear()
-                .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                .range([marginTop, height - marginBottom]);
+                const file = event.dataTransfer.files[0];
+                handleFile(file);
+            });
 
-            const color = d3.scaleOrdinal()
-                .domain(series.map(d => d.key))
-                .range(d3.schemeSpectral[series.length])
-                .unknown("#ccc");
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                handleFile(file);
+            });
 
-            const svg = d3.select("#plot").append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", [0, 0, width, height])
-                .attr("style", "max-width: 100%; height: auto;");
+            function handleFile(file) {
+                if (file) {
+                    filenameDisplay.textContent = file.name;
 
-            svg.append("g")
-                .selectAll("g")
-                .data(series)
-                .join("g")
-                .attr("fill", d => color(d.key))
-                .selectAll("rect")
-                .data(D => D.map(d => (d.key = D.key, d)))
-                .join("rect")
-                .attr("x", d => x(d.data[0]))
-                .attr("y", d => y(d[0]))
-                .attr("height", d => y(d[1]) - y(d[0]))
-                .attr("width", x.bandwidth())
-                .append("title")
-                .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("en")}`);
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const text = e.target.result;
+                        const rawData = d3.dsvFormat(";").parse(text);
+                        drawChart(rawData);
+                    };
+                    reader.readAsText(file);
+                }
+            }
 
-            svg.append("g")
-                .attr("transform", `translate(0,${height - marginBottom})`)
-                .call(d3.axisBottom(x).tickSizeOuter(0))
-                .call(g => g.selectAll(".domain").remove());
+            function drawChart(rawData) {
+                d3.select("#plot").select("svg").remove();  // Önceki grafiği temizle
 
-            svg.append("g")
-                .attr("transform", `translate(${marginLeft},0)`)
-                .call(d3.axisLeft(y).ticks(null, "s"))
-                .call(g => g.selectAll(".domain").remove());
-        }</script>
+                const data = rawData.map((d, i) => {
+                    if (i === 0) {
+                        return {
+                            state: "Kuyu", // Sabit değer
+                            formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                            depth: +d["Alt Derinlik (TVD)"]  // CSV'deki ilk derinlik kolonu
+                        };
+                    } else {
+                        const previousDepth = +rawData[i - 1]["Alt Derinlik (TVD)"];
+                        const currentDepth = +d["Alt Derinlik (TVD)"];
+                        return {
+                            state: "Kuyu", // Sabit değer
+                            formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                            depth: currentDepth - previousDepth  // Bir önceki derinlikten çıkarılarak hesaplanır
+                        };
+                    }
+                });
+
+                const width = 300;
+                const height = 500;
+                const marginTop = 10;
+                const marginRight = 10;
+                const marginBottom = 20;
+                const marginLeft = 40;
+
+                const series = d3.stack()
+                    .keys(d3.union(data.map(d => d.formasyon)))
+                    .value(([, D], key) => D.get(key).depth)
+                    (d3.index(data, d => d.state, d => d.formasyon));
+
+                const x = d3.scaleBand()
+                    .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
+                    .range([marginLeft, width - marginRight])
+                    .padding(0.1);
+
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+                    .range([marginTop, height - marginBottom]);
+
+                const color = d3.scaleOrdinal()
+                    .domain(series.map(d => d.key))
+                    .range(d3.schemeSpectral[series.length])
+                    .unknown("#ccc");
+
+                const svg = d3.select("#plot").append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("viewBox", [0, 0, width, height])
+                    .attr("style", "max-width: 100%; height: auto;");
+
+                svg.append("g")
+                    .selectAll("g")
+                    .data(series)
+                    .join("g")
+                    .attr("fill", d => color(d.key))
+                    .selectAll("rect")
+                    .data(D => D.map(d => (d.key = D.key, d)))
+                    .join("rect")
+                    .attr("x", d => x(d.data[0]))
+                    .attr("y", d => y(d[0]))
+                    .attr("height", d => y(d[1]) - y(d[0]))
+                    .attr("width", x.bandwidth())
+                    .append("title")
+                    .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("en")}`);
+
+                svg.append("g")
+                    .attr("transform", `translate(0,${height - marginBottom})`)
+                    .call(d3.axisBottom(x).tickSizeOuter(0))
+                    .call(g => g.selectAll(".domain").remove());
+
+                svg.append("g")
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(d3.axisLeft(y).ticks(null, "s"))
+                    .call(g => g.selectAll(".domain").remove());
+            }
+        });
+    </script>
 </body>
 </html>

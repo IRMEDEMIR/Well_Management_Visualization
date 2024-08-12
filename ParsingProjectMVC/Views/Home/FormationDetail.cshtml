@@ -28,19 +28,13 @@
     <h3>Formasyon Görselleştirmesi</h3>
     <div id="plot"></div>
     <script>document.addEventListener('DOMContentLoaded', function () {
-            const data = [
-                { state: "Kuyu", formasyon: "ŞELMO", depth: 231 },
-                { state: "Kuyu", formasyon: "MİDYAT GRUBU", depth: 621 },
-                { state: "Kuyu", formasyon: "GERCÜŞ", depth: 235 },
-                { state: "Kuyu", formasyon: "ÜST SINAN", depth: 492 },
-                { state: "Kuyu", formasyon: "ANTAK", depth: 19 },
-                { state: "Kuyu", formasyon: "ALT SİNAN + GARZAN", depth: 292 },
-                { state: "Kuyu", formasyon: "TERBÜZEK", depth: 157 },
-                { state: "Kuyu", formasyon: "KASTEL", depth: 477 },
-                { state: "Kuyu", formasyon: "SAYINDERE", depth: 120 },
-                { state: "Kuyu", formasyon: "KARABABA", depth: 24 },
-                { state: "Kuyu", formasyon: "DERDERE", depth: 41 }
-            ];
+            d3.dsv(";", "/data/Formasyonlar.csv").then(function (rawData) {
+                // CSV'den alınan verileri data dizisine dönüştürme
+                const data = rawData.map(d => ({
+                    state: "Kuyu", // Sabit değer
+                    formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                    depth: +d["Alt Derinlik (TVD)"]  // CSV'deki derinlik kolonu
+                }));
 
             const width = 300;
             const height = 500;
@@ -99,6 +93,7 @@
                 .attr("transform", `translate(${marginLeft},0)`)
                 .call(d3.axisLeft(y).ticks(null, "s"))
                 .call(g => g.selectAll(".domain").remove());
+        });
         });</script>
 </body>
 </html>

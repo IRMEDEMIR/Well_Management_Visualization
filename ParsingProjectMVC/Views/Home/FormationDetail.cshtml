@@ -30,11 +30,26 @@
     <script>document.addEventListener('DOMContentLoaded', function () {
             d3.dsv(";", "/data/Formasyonlar.csv").then(function (rawData) {
                 // CSV'den alınan verileri data dizisine dönüştürme
-                const data = rawData.map(d => ({
-                    state: "Kuyu", // Sabit değer
-                    formasyon: d.Formasyon, // CSV'deki formasyon kolonu
-                    depth: +d["Alt Derinlik (TVD)"]  // CSV'deki derinlik kolonu
-                }));
+                const data = rawData.map((d, i) => {
+                    // İlk satırın derinliği kendisiyle aynıdır çünkü önceki bir katman yok
+                    if (i === 0) {
+                        return {
+                            state: "Kuyu", // Sabit değer
+                            formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                            depth: +d["Alt Derinlik (TVD)"]  // CSV'deki ilk derinlik kolonu
+                        };
+                    } else {
+                        // Diğer satırlar için derinlik farkı hesaplanır
+                        const previousDepth = +rawData[i - 1]["Alt Derinlik (TVD)"];
+                        const currentDepth = +d["Alt Derinlik (TVD)"];
+                        return {
+                            state: "Kuyu", // Sabit değer
+                            formasyon: d.Formasyon, // CSV'deki formasyon kolonu
+                            depth: currentDepth - previousDepth  // Bir önceki derinlikten çıkarılarak hesaplanır
+                        };
+                    }
+                });
+
 
             const width = 300;
             const height = 500;

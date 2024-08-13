@@ -169,7 +169,7 @@
 
                 svg.append("g")
                     .attr("transform", `translate(${marginLeft},0)`)
-                    .call(d3.axisLeft(y).ticks(null, "s"))
+                    .call(d3.axisLeft(y).ticks(null))
                     .call(g => g.selectAll(".domain").remove());
             }
         });</script>

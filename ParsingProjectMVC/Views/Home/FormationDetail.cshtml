@@ -154,11 +154,53 @@
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         const text = e.target.result;
-                        const rawData = d3.dsvFormat(";").parse(text);
+                        const rawData = parseWellpathReport(text);
                         drawChart2(rawData);
                     };
                     reader.readAsText(file);
                 }
+            }
+
+            function parseWellpathReport(text) {
+                const lines = text.split('\n');
+
+                // 'Wellpath Report' kısmının başlangıç indeksini bul
+                const startIndex = lines.findIndex(line => line.includes('Wellpath Report')) + 1;
+
+                // Boş satırları bul ve 'Wellpath Report' kısmının bitiş indeksini belirle
+                const endIndex = lines.findIndex((line, index) => index > startIndex && !line.trim());
+
+                if (startIndex === -1 || endIndex === -1) {
+                    console.error("Wellpath Report kısmı bulunamadı.");
+                    return [];
+                }
+
+                // 'Wellpath Report' kısmındaki satırları al
+                const reportLines = lines.slice(startIndex, endIndex).filter(line => line.trim() !== '');
+                if (reportLines.length === 0) {
+                    console.error("Wellpath Report kısmında veri bulunamadı.");
+                    return [];
+                } else {
+                    console.log("Wellpath Report kısmında veri bulundu.");
+                }
+
+                // Başlıkları al
+                const header = reportLines[0].split(';');
+                console.log("Başlıklar:", header);
+
+                // Veriyi parse et
+                return reportLines.slice(1).map((line) => {
+                    const values = line.split(';').map(value => value.trim().replace(',', '.'));
+
+                    const [MD, Inc, Azi, TVD] = values;
+
+                    return {
+                        MD: parseFloat(MD),
+                        Inc: parseFloat(Inc),
+                        Azi: parseFloat(Azi),
+                        TVD: parseFloat(TVD)
+                    };
+                }).filter(d => d !== null);
             }
 
             function drawChart(rawData) {
@@ -230,27 +272,18 @@
                     .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
 
                 svg.append("g")
-                    .attr("transform", `translate(0,${height - marginBottom})`)
+                    .attr("transform", `translate(0, ${height - marginBottom})`)
                     .call(d3.axisBottom(x).tickSizeOuter(0))
                     .call(g => g.selectAll(".domain").remove());
 
                 svg.append("g")
-                    .attr("transform", `translate(${marginLeft},0)`)
+                    .attr("transform", `translate(${marginLeft}, 0)`)
                     .call(d3.axisLeft(y).ticks(null, "s"))
                     .call(g => g.selectAll(".domain").remove());
             }
 
-            function drawChart2(rawData) {
+            function drawChart2(data) {
                 d3.select("#plot2").select("svg").remove();  // Önceki grafiği temizle
-
-                const data = rawData.map(d => {
-                    const tvd = +d["TVD[m]"];
-                    const vs = +d["Vertical Section"];
-                    return {
-                        value: Math.sqrt(tvd * tvd + vs * vs),
-                        label: d["Formasyon"]
-                    };
-                });
 
                 const width = 300;
                 const height = 500;
@@ -259,13 +292,12 @@
                 const marginBottom = 20;
                 const marginLeft = 40;
 
-                const x = d3.scaleBand()
-                    .domain(data.map(d => d.label))
-                    .range([marginLeft, width - marginRight])
-                    .padding(0.1);
+                const x = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.MD)])
+                    .range([marginLeft, width - marginRight]);
 
                 const y = d3.scaleLinear()
-                    .domain([0, d3.max(data, d => d.value)])
+                    .domain([d3.min(data, d => d.TVD), d3.max(data, d => d.TVD)])
                     .range([height - marginBottom, marginTop]);
 
                 const svg = d3.select("#plot2").append("svg")
@@ -275,22 +307,23 @@
                     .attr("style", "max-width: 100%; height: auto;");
 
                 svg.append("g")
-                    .selectAll("rect")
+                    .selectAll("circle")
                     .data(data)
-                    .join("rect")
-                    .attr("x", d => x(d.label))
-                    .attr("y", d => y(d.value))
-                    .attr("height", d => y(0) - y(d.value))
-                    .attr("width", x.bandwidth())
-                    .attr("fill", "#69b3a2");
+                    .join("circle")
+                    .attr("cx", d => x(d.MD))
+                    .attr("cy", d => y(d.TVD))
+                    .attr("r", 3)
+                    .attr("fill", "blue");
 
                 svg.append("g")
-                    .attr("transform", `translate(0,${height - marginBottom})`)
-                    .call(d3.axisBottom(x).tickSizeOuter(0));
+                    .attr("transform", `translate(0, ${height - marginBottom})`)
+                    .call(d3.axisBottom(x).ticks(10))
+                    .call(g => g.selectAll(".domain").remove());
 
                 svg.append("g")
-                    .attr("transform", `translate(${marginLeft},0)`)
-                    .call(d3.axisLeft(y).ticks(null, "s"));
+                    .attr("transform", `translate(${marginLeft}, 0)`)
+                    .call(d3.axisLeft(y).ticks(10))
+                    .call(g => g.selectAll(".domain").remove());
             }
         });
     </script>

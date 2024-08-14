@@ -309,12 +309,12 @@
                 // Formasyonları güncelleme
                 formations.forEach(formation => {
                     let newDepth = formation['Alt Derinlik (TVD)'] - formation['Üst Derinlik (TVD)']; // Başlangıçta, yeni derinlik üst derinlik olarak ayarlanır.
-
+                    let newDepth2 = 0;
                     // Wellbore verileri üzerinden formasyon derinliklerini güncelleme
                     wellboreData.forEach(wellbore => {
                         if (wellbore.TVD >= formation['Üst Derinlik (TVD)'] && wellbore.TVD <= formation['Alt Derinlik (TVD)']) {
                             if (wellbore.Inc !== 0) {
-                                newDepth += (wellbore.TVD - wellbore.MD);  // Delta MD'yi topluyoruz.
+                                newDepth2 = (wellbore.MD - wellbore.TVD);  // Delta MD'yi topluyoruz.
                             }
                         } else {
                             return;
@@ -322,7 +322,7 @@
                     });
 
                     // Yeni hesaplanan Alt Derinlik (TVD) değerini formasyonun güncellenmiş derinlik olarak ayarla
-                    formation['Alt Derinlik (TVD)'] = newDepth;
+                    formation['Alt Derinlik (TVD)'] = newDepth + newDepth2;
 
                     // Yeni Alt Derinlik (TVD) değerini konsola yazdırma
                     console.log(`Formasyon: ${formation['Formasyon']}, Yeni Alt Derinlik (TVD): ${formation['Alt Derinlik (TVD)']}`);

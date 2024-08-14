@@ -344,14 +344,14 @@
                         };
                     } else {
                         const previousDepth = +formations[i - 1]["Alt Derinlik (TVD)"];
-                        const currentDepth = +d["Alt Derinlik (TVD)"];
                         return {
                             state: "Kuyu",
                             formasyon: d.Formasyon,
-                            depth: currentDepth - previousDepth
+                            depth: +d["Alt Derinlik (TVD)"] 
                         };
                     }
                 });
+
 
                 const series = d3.stack()
                     .keys(d3.union(data.map(d => d.formasyon)))

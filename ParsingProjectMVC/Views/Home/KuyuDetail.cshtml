@@ -183,7 +183,6 @@
             reader.readAsText(csvFile);
         }
 
-
         function processCSV(csvText, jsonDataArray) {
             Papa.parse(csvText, {
                 header: false,
@@ -285,7 +284,6 @@
                         name: 'Kuyu'
                     };
 
-                 
                     const xMin = Math.min(...x);
                     const xMax = Math.max(...x);
                     const yMin = Math.min(...y);
@@ -305,10 +303,6 @@
                     document.getElementById('maxXYRange').textContent = `maxXYRange: ${maxXYRange}`;
                     document.getElementById('zRange').textContent = `zRange: ${zRange}`;
                     
-
-                    
-                    
-                
                     const cone = {
                         type: 'cone',        
                         x: [maxXYRange-50],
@@ -324,6 +318,7 @@
                         anchor: 'tail',
                         showscale: false
                     };
+
                     const text = {
                         x: [maxXYRange-50],
                         y: [0],
@@ -500,7 +495,7 @@
             
             const { cone, text } = addDirectionArrow(minX, minY, maxZ);
             //combinedData.push(line);  // Çizgiyi veri dizisine ekle
-            //combinedData.push(cone);  // Koniyi veri dizisine ekle
+            combinedData.push(cone);  // Koniyi veri dizisine ekle
             combinedData.push(text);  // Metni veri dizisine ekle
             const layout = {
                 title: 'Kuyu Ve Yüzey Görselleştirmesi',
@@ -515,10 +510,6 @@
             Plotly.newPlot('combined-plot', combinedData, layout);
             document.getElementById('palette-container').style.display = 'block';
         }
-
-
-        
-
 
     </script>
 </body>

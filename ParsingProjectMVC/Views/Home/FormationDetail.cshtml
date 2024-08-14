@@ -294,8 +294,9 @@
             }
 
             function drawChart2(wellboreData) {
+                //eğer originalFormations boşsa bir uyarı mesajı göster ve fonksiyondan çık
                 if (originalFormations.length === 0) {
-                    console.error("Önce formasyon dosyası yükleyin.");
+                    alert("Önce formasyon dosyası yükleyin.");
                     return;
                 }
 
@@ -352,32 +353,37 @@
                     }
                 });
 
-
+                //D3 stack layout ile verileri yığma (stack) formatında hazırla
                 const series = d3.stack()
                     .keys(d3.union(data.map(d => d.formasyon)))
                     .value(([, D], key) => D.get(key).depth)
                     (d3.index(data, d => d.state, d => d.formasyon));
 
+                //x ekseni için ölçek oluştur
                 const x = d3.scaleBand()
                     .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
                     .range([marginLeft, width - marginRight])
                     .padding(0.1);
 
+                //y ekseni için ölçek oluştur
                 const y = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
                     .range([marginTop, height - marginBottom]);
 
+                //renk ölçeği oluştur
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
                     .range(d3.schemeSpectral[series.length])
                     .unknown("#ccc");
 
+                //SVG ögesi oluşturma ve ayarlama 
                 const svg = d3.select("#plot2").append("svg")
                     .attr("width", width)
                     .attr("height", height)
                     .attr("viewBox", [0, 0, width, height])
                     .attr("style", "max-width: 100%; height: auto;");
 
+                //grafik çubuklarını ekleme 
                 svg.append("g")
                     .selectAll("g")
                     .data(series)
@@ -393,11 +399,13 @@
                     .append("title")
                     .text(d => `${ d.data[0] } ${ d.key }\n${ d.data[1].get(d.key).depth.toLocaleString("tr") }`);
 
+                //y eksenini ekleme 
                 svg.append("g")
                     .attr("transform", `translate(0,${marginTop})`)
                     .call(d3.axisLeft(y))
                     .call(g => g.select(".domain").remove());
 
+                //x eksenini ekleme
                 svg.append("g")
                     .attr("transform", `translate(${marginLeft}, 0)`)
                     .call(d3.axisLeft(y).ticks(null))

@@ -41,6 +41,22 @@
         .axis text {
             font-size: 10px;
         }
+
+        .plot-with-title {
+            position: relative;
+            margin-bottom: 20px; /* Başlık ile plot arasına boşluk bırakır */
+        }
+
+        .plot-title {
+            position: absolute;
+            top: -30px; /* Başlığı div'in üstünde konumlandırır */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
     </style>
     <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
@@ -61,9 +77,14 @@
     </div>
 
     <div id="plot-container">
-        <div id="plot"></div>
-        <div id="plot2"></div>
+        <div id="plot" class="plot-with-title">
+            <div class="plot-title">Yer Altı Formasyonu</div>
+        </div>
+        <div id="plot2" class="plot-with-title">
+            <div class="plot-title">Kuyu Formasyonu</div>
+        </div>
     </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

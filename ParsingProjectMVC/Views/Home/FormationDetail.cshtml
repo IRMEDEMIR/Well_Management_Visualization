@@ -75,6 +75,8 @@
             const fileInput2 = document.getElementById('fileInput2');
             const filenameDisplay2 = document.getElementById('filename2');
 
+            let originalFormations = [];  // originalFormations değişkenini global olarak tanımlıyoruz
+
             dropzone.addEventListener('click', function () {
                 fileInput.click();
             });
@@ -141,7 +143,8 @@
                     reader.onload = function (e) {
                         const text = e.target.result;
                         const rawData = d3.dsvFormat(";").parse(text);
-                        drawChart(rawData);
+                        originalFormations = rawData;  // Verileri kaydediyoruz
+                        drawChart(originalFormations);
                     };
                     reader.readAsText(file);
                 }
@@ -154,13 +157,12 @@
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         const text = e.target.result;
-                        const rawData = parseWellpathReport(text);
-                        drawChart2(rawData);
+                        const wellboreData = parseWellpathReport(text);
+                        drawChart2(wellboreData);
                     };
                     reader.readAsText(file);
                 }
             }
-
             function parseWellpathReport(text) {
                 const lines = text.split('\n');
 
@@ -192,17 +194,28 @@
 
                     const [MD, Inc, Azi, TVD] = values;
 
+                    // NaN olan değerleri filtrele
+                    const parsedMD = parseFloat(MD);
+                    const parsedInc = parseFloat(Inc);
+                    const parsedAzi = parseFloat(Azi);
+                    const parsedTVD = parseFloat(TVD);
+
+                    if (isNaN(parsedMD) || isNaN(parsedInc) || isNaN(parsedAzi) || isNaN(parsedTVD)) {
+                        return null;
+                    }
+
                     return {
-                        MD: parseFloat(MD),
-                        Inc: parseFloat(Inc),
-                        Azi: parseFloat(Azi),
-                        TVD: parseFloat(TVD)
+                        MD: parsedMD,
+                        Inc: parsedInc,
+                        Azi: parsedAzi,
+                        TVD: parsedTVD
                     };
                 }).filter(d => d !== null);
             }
 
+
             function drawChart(rawData) {
-                d3.select("#plot").select("svg").remove();  // Önceki grafiği temizle
+                d3.select("#plot").select("svg").remove();
 
                 const data = rawData.map((d, i) => {
                     if (i === 0) {
@@ -241,7 +254,7 @@
 
                 const y = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                    .range([height - marginBottom, marginTop]);
+                    .range([marginTop, height - marginBottom]);
 
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
@@ -260,67 +273,59 @@
                     .join("g")
                     .attr("fill", d => color(d.key))
                     .selectAll("rect")
-                    .data(d => d)
+                    .data(D => D.map(d => (d.key = D.key, d)))
                     .join("rect")
-                    .attr("x", (d, i) => x(d.data[0]))
-                    .attr("y", d => y(d[1]))
-                    .attr("height", d => y(d[0]) - y(d[1]))
+                    .attr("x", d => x(d.data[0]))
+                    .attr("y", d => y(d[0]))
+                    .attr("height", d => y(d[1]) - y(d[0]))
                     .attr("width", x.bandwidth());
 
                 svg.append("g")
-                    .attr("transform", `translate(0,${height - marginBottom})`)
-                    .call(d3.axisBottom(x).tickSizeOuter(0))
-                    .call(g => g.selectAll(".domain").remove())
-                    .append("text")
-                    .attr("x", width / 2)
-                    .attr("y", marginBottom * 1.5)
-                    .attr("fill", "currentColor")
-                    .attr("text-anchor", "middle")
-                    .text("Kuyu Formasyonu");
+                    .attr("transform", `translate(0,${marginTop})`)
+                    .call(d3.axisLeft(y))
+                    .call(g => g.select(".domain").remove());
 
                 svg.append("g")
-                    .attr("transform", `translate(${marginLeft},0)`)
-                    .call(d3.axisLeft(y))
-                    .call(g => g.select(".domain").remove())
-                    .append("text")
-                    .attr("x", -marginLeft)
-                    .attr("y", 10)
-                    .attr("fill", "currentColor")
-                    .attr("text-anchor", "start")
-                    .text("Derinlik (TVD)");
-
-                const legend = svg => {
-                    const g = svg
-                        .attr("transform", `translate(${width},0)`)
-                        .attr("text-anchor", "end")
-                        .attr("font-family", "sans-serif")
-                        .attr("font-size", 10)
-                        .selectAll("g")
-                        .data(color.domain().slice().reverse())
-                        .join("g")
-                        .attr("transform", (d, i) => `translate(0,${(i + 0.5) * 20})`);
-
-                    g.append("rect")
-                        .attr("x", -19)
-                        .attr("width", 19)
-                        .attr("height", 19)
-                        .attr("fill", color);
-
-                    g.append("text")
-                        .attr("x", -24)
-                        .attr("y", 9.5)
-                        .attr("dy", "0.35em")
-                        .text(d => d);
-                };
-
-                svg.append("g").call(legend);
+                    .attr("transform", `translate(${marginLeft}, 0)`)
+                    .call(d3.axisLeft(y).ticks(null))
+                    .call(g => g.selectAll(".domain").remove());
             }
 
-            function drawChart2(rawData) {
-                d3.select("#plot2").select("svg").remove();  // Önceki grafiği temizle
+            function drawChart2(wellboreData) {
+                if (originalFormations.length === 0) {
+                    console.error("Önce formasyon dosyası yükleyin.");
+                    return;
+                }
 
-                const data = rawData.map(d => d.MD);
+                // Mevcut formasyonları kopyalayarak başlıyoruz.
+                let formations = [...originalFormations];
 
+                console.log("Wellbore Data:", wellboreData);
+                console.log("Original Formations:", originalFormations);
+
+                // Formasyonları güncelleme
+                formations.forEach(formation => {
+                    let newDepth = formation['Alt Derinlik (TVD)'] - formation['Üst Derinlik (TVD)']; // Başlangıçta, yeni derinlik üst derinlik olarak ayarlanır.
+
+                    // Wellbore verileri üzerinden formasyon derinliklerini güncelleme
+                    wellboreData.forEach(wellbore => {
+                        if (wellbore.TVD >= formation['Üst Derinlik (TVD)'] && wellbore.TVD <= formation['Alt Derinlik (TVD)']) {
+                            if (wellbore.Inc !== 0) {
+                                newDepth += (wellbore.TVD - wellbore.MD);  // Delta MD'yi topluyoruz.
+                            }
+                        } else {
+                            return;
+                        }
+                    });
+
+                    // Yeni hesaplanan Alt Derinlik (TVD) değerini formasyonun güncellenmiş derinlik olarak ayarla
+                    formation['Alt Derinlik (TVD)'] = newDepth;
+
+                    // Yeni Alt Derinlik (TVD) değerini konsola yazdırma
+                    console.log(`Formasyon: ${formation['Formasyon']}, Yeni Alt Derinlik (TVD): ${formation['Alt Derinlik (TVD)']}`);
+                });
+
+                // Verileri grafiğe dönüştürme
                 const width = 300;
                 const height = 500;
                 const marginTop = 10;
@@ -328,14 +333,42 @@
                 const marginBottom = 20;
                 const marginLeft = 40;
 
+                const data = formations.map((d, i) => {
+                    if (i === 0) {
+                        return {
+                            state: "Kuyu",
+                            formasyon: d.Formasyon,
+                            depth: +d["Alt Derinlik (TVD)"]
+                        };
+                    } else {
+                        const previousDepth = +formations[i - 1]["Alt Derinlik (TVD)"];
+                        const currentDepth = +d["Alt Derinlik (TVD)"];
+                        return {
+                            state: "Kuyu",
+                            formasyon: d.Formasyon,
+                            depth: currentDepth - previousDepth
+                        };
+                    }
+                });
+
+                const series = d3.stack()
+                    .keys(d3.union(data.map(d => d.formasyon)))
+                    .value(([, D], key) => D.get(key).depth)
+                    (d3.index(data, d => d.state, d => d.formasyon));
+
                 const x = d3.scaleBand()
-                    .domain(["MD"])
+                    .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
                     .range([marginLeft, width - marginRight])
                     .padding(0.1);
 
                 const y = d3.scaleLinear()
-                    .domain([0, d3.max(data)])
-                    .range([height - marginBottom, marginTop]);
+                    .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+                    .range([marginTop, height - marginBottom]);
+
+                const color = d3.scaleOrdinal()
+                    .domain(series.map(d => d.key))
+                    .range(d3.schemeSpectral[series.length])
+                    .unknown("#ccc");
 
                 const svg = d3.select("#plot2").append("svg")
                     .attr("width", width)
@@ -344,37 +377,30 @@
                     .attr("style", "max-width: 100%; height: auto;");
 
                 svg.append("g")
+                    .selectAll("g")
+                    .data(series)
+                    .join("g")
+                    .attr("fill", d => color(d.key))
                     .selectAll("rect")
-                    .data(data)
+                    .data(D => D.map(d => (d.key = D.key, d)))
                     .join("rect")
-                    .attr("x", x("MD"))
-                    .attr("y", d => y(d))
-                    .attr("height", d => y(0) - y(d))
-                    .attr("width", x.bandwidth())
-                    .attr("fill", "#007bff");
+                    .attr("x", d => x(d.data[0]))
+                    .attr("y", d => y(d[0]))
+                    .attr("height", d => y(d[1]) - y(d[0]))
+                    .attr("width", x.bandwidth());
 
                 svg.append("g")
-                    .attr("transform", `translate(0,${height - marginBottom})`)
-                    .call(d3.axisBottom(x).tickSizeOuter(0))
-                    .call(g => g.selectAll(".domain").remove())
-                    .append("text")
-                    .attr("x", width / 2)
-                    .attr("y", marginBottom * 1.5)
-                    .attr("fill", "currentColor")
-                    .attr("text-anchor", "middle")
-                    .text("MD Değerleri");
-
-                svg.append("g")
-                    .attr("transform", `translate(${marginLeft},0)`)
+                    .attr("transform", `translate(0,${marginTop})`)
                     .call(d3.axisLeft(y))
-                    .call(g => g.select(".domain").remove())
-                    .append("text")
-                    .attr("x", -marginLeft)
-                    .attr("y", 10)
-                    .attr("fill", "currentColor")
-                    .attr("text-anchor", "start")
-                    .text("MD (Measured Depth)");
+                    .call(g => g.select(".domain").remove());
+
+                svg.append("g")
+                    .attr("transform", `translate(${marginLeft}, 0)`)
+                    .call(d3.axisLeft(y).ticks(null))
+                    .call(g => g.selectAll(".domain").remove());
             }
+
+
 
         });
     </script>

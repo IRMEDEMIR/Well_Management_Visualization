@@ -20,7 +20,7 @@
 
         #plot, #plot2 {
             width: 48%;
-            height: 500px;
+            height: 600px;
             border: 1px solid #ccc;
         }
 
@@ -65,12 +65,12 @@
 
     <div id="plot-container">
         <div id="dropzone">
-            Yer altı formasyonu için sürükleyip bırakın veya dosya seçin
+            Yer altı formasyonu için sürükleyip bırakın veya dosya seçin: 
             <input type="file" id="fileInput" style="display: none;">
             <div id="filename"></div>
         </div>
         <div id="dropzone2">
-            Kuyu formasyonu için sürükleyip bırakın veya dosya seçin
+            Kuyu formasyonu için sürükleyip bırakın veya dosya seçin: 
             <input type="file" id="fileInput2" style="display: none;">
             <div id="filename2"></div>
         </div>
@@ -256,8 +256,9 @@
                     }
                 });
 
+
                 const width = 300;
-                const height = 500;
+                const height = 600;
                 const marginTop = 10;
                 const marginRight = 10;
                 const marginBottom = 20;
@@ -275,7 +276,7 @@
 
                 const y = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                    .range([marginTop, height - marginBottom]);
+                    .range([marginTop, height - marginBottom]); // Y ekseni yukarıdan aşağıya doğru artacak şekilde ayarlandı
 
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
@@ -286,8 +287,10 @@
                     .attr("width", width)
                     .attr("height", height)
                     .attr("viewBox", [0, 0, width, height])
-                    .attr("style", "max-width: 100%; height: auto;");
+                    .attr("style", "max-width: 100%; height: auto;")
+                    .call(zoom); // Zoom davranışı burada ekleniyor
 
+                // Çubukları ekle
                 svg.append("g")
                     .selectAll("g")
                     .data(series)
@@ -297,22 +300,42 @@
                     .data(D => D.map(d => (d.key = D.key, d)))
                     .join("rect")
                     .attr("x", d => x(d.data[0]))
-                    .attr("y", d => y(d[0]))
-                    .attr("height", d => y(d[1]) - y(d[0]))
+                    .attr("y", d => y(d[0])) // Zoom işlemi için güncellendi
+                    .attr("height", d => y(d[1]) - y(d[0])) // Zoom işlemi için güncellendi
                     .attr("width", x.bandwidth())
                     .append("title")
                     .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
 
-
-                svg.append("g")
-                    .attr("transform", `translate(0,${marginTop})`)
-                    .call(d3.axisLeft(y))
+                // Y eksenini ekle ve aralıkları 100'er 100'er ayarla
+                const yAxis = svg.append("g")
+                    .attr("transform", `translate(${marginLeft}, 0)`)
+                    .call(d3.axisLeft(y)
+                        .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
+                        .tickFormat(d3.format("d"))) // Bu satır 100'er 100'er aralık ayarlamayı sağlar
                     .call(g => g.select(".domain").remove());
 
-                svg.append("g")
-                    .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y).ticks(null))
-                    .call(g => g.selectAll(".domain").remove());
+                // Zoom fonksiyonu
+                function zoom(svg) {
+                    const extent = [[marginLeft, marginTop], [width - marginRight, height - marginBottom]];
+
+                    svg.call(d3.zoom()
+                        .scaleExtent([1, 8])
+                        .translateExtent(extent)
+                        .extent(extent)
+                        .on("zoom", zoomed));
+
+                    function zoomed(event) {
+                        y.range([marginTop, height - marginBottom].map(d => event.transform.applyY(d)));
+                        svg.selectAll("rect")
+                            .attr("y", d => y(d[0]))
+                            .attr("height", d => y(d[1]) - y(d[0]));
+                        yAxis.call(d3.axisLeft(y)
+                            .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
+                            .tickFormat(d3.format("d"))); // Zoom sırasında da 100'er 100'er aralıkları tut
+                    }
+                }
+
+
             }
 
             function drawChart2(wellboreData) {
@@ -350,13 +373,7 @@
                     console.log(`Formasyon: ${formation['Formasyon']}, Yeni Alt Derinlik (TVD): ${formation['Alt Derinlik (TVD)']}`);
                 });
 
-                // Verileri grafiğe dönüştürme
-                const width = 300;
-                const height = 500;
-                const marginTop = 10;
-                const marginRight = 10;
-                const marginBottom = 20;
-                const marginLeft = 40;
+
 
                 const data = formations.map((d, i) => {
                     if (i === 0) {
@@ -370,42 +387,45 @@
                         return {
                             state: "Kuyu",
                             formasyon: d.Formasyon,
-                            depth: +d["Alt Derinlik (TVD)"] 
+                            depth: +d["Alt Derinlik (TVD)"]
                         };
                     }
                 });
 
-                //D3 stack layout ile verileri yığma (stack) formatında hazırla
+                const width = 300;
+                const height = 600;
+                const marginTop = 10;
+                const marginRight = 10;
+                const marginBottom = 20;
+                const marginLeft = 40;
+
                 const series = d3.stack()
                     .keys(d3.union(data.map(d => d.formasyon)))
                     .value(([, D], key) => D.get(key).depth)
                     (d3.index(data, d => d.state, d => d.formasyon));
 
-                //x ekseni için ölçek oluştur
                 const x = d3.scaleBand()
                     .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
                     .range([marginLeft, width - marginRight])
                     .padding(0.1);
 
-                //y ekseni için ölçek oluştur
                 const y = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                    .range([marginTop, height - marginBottom]);
+                    .range([marginTop, height - marginBottom]); // Y ekseni yukarıdan aşağıya doğru artacak şekilde ayarlandı
 
-                //renk ölçeği oluştur
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
                     .range(d3.schemeSpectral[series.length])
                     .unknown("#ccc");
 
-                //SVG ögesi oluşturma ve ayarlama 
                 const svg = d3.select("#plot2").append("svg")
                     .attr("width", width)
                     .attr("height", height)
                     .attr("viewBox", [0, 0, width, height])
-                    .attr("style", "max-width: 100%; height: auto;");
+                    .attr("style", "max-width: 100%; height: auto;")
+                    .call(zoom); // Zoom davranışı burada ekleniyor
 
-                //grafik çubuklarını ekleme 
+                // Çubukları ekle
                 svg.append("g")
                     .selectAll("g")
                     .data(series)
@@ -415,26 +435,43 @@
                     .data(D => D.map(d => (d.key = D.key, d)))
                     .join("rect")
                     .attr("x", d => x(d.data[0]))
-                    .attr("y", d => y(d[0]))
-                    .attr("height", d => y(d[1]) - y(d[0]))
+                    .attr("y", d => y(d[0])) // Zoom işlemi için güncellendi
+                    .attr("height", d => y(d[1]) - y(d[0])) // Zoom işlemi için güncellendi
                     .attr("width", x.bandwidth())
                     .append("title")
                     .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
 
-
-                //y eksenini ekleme 
-                svg.append("g")
-                    .attr("transform", `translate(0,${marginTop})`)
-                    .call(d3.axisLeft(y))
+                // Y eksenini ekle ve aralıkları 100'er 100'er ayarla
+                const yAxis = svg.append("g")
+                    .attr("transform", `translate(${marginLeft}, 0)`)
+                    .call(d3.axisLeft(y)
+                        .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
+                        .tickFormat(d3.format("d"))) // Bu satır 100'er 100'er aralık ayarlamayı sağlar
                     .call(g => g.select(".domain").remove());
 
-                //x eksenini ekleme
-                svg.append("g")
-                    .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y).ticks(null))
-                    .call(g => g.selectAll(".domain").remove());
-            }
+                // Zoom fonksiyonu
+                function zoom(svg) {
+                    const extent = [[marginLeft, marginTop], [width - marginRight, height - marginBottom]];
 
+                    svg.call(d3.zoom()
+                        .scaleExtent([1, 8])
+                        .translateExtent(extent)
+                        .extent(extent)
+                        .on("zoom", zoomed));
+
+                    function zoomed(event) {
+                        y.range([marginTop, height - marginBottom].map(d => event.transform.applyY(d)));
+                        svg.selectAll("rect")
+                            .attr("y", d => y(d[0]))
+                            .attr("height", d => y(d[1]) - y(d[0]));
+                        yAxis.call(d3.axisLeft(y)
+                            .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
+                            .tickFormat(d3.format("d"))); // Zoom sırasında da 100'er 100'er aralıkları tut
+                    }
+                }
+
+
+            }
 
 
         });

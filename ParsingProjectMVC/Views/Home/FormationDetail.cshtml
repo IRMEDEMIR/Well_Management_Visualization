@@ -278,7 +278,10 @@
                     .attr("x", d => x(d.data[0]))
                     .attr("y", d => y(d[0]))
                     .attr("height", d => y(d[1]) - y(d[0]))
-                    .attr("width", x.bandwidth());
+                    .attr("width", x.bandwidth())
+                    .append("title")
+                    .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
+
 
                 svg.append("g")
                     .attr("transform", `translate(0,${marginTop})`)
@@ -376,6 +379,7 @@
                     .attr("viewBox", [0, 0, width, height])
                     .attr("style", "max-width: 100%; height: auto;");
 
+
                 svg.append("g")
                     .selectAll("g")
                     .data(series)
@@ -387,7 +391,10 @@
                     .attr("x", d => x(d.data[0]))
                     .attr("y", d => y(d[0]))
                     .attr("height", d => y(d[1]) - y(d[0]))
-                    .attr("width", x.bandwidth());
+                    .attr("width", x.bandwidth())
+                    .append("title")
+                    .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
+
 
                 svg.append("g")
                     .attr("transform", `translate(0,${marginTop})`)

@@ -164,18 +164,16 @@
             function parseWellpathReport(text) {
                 const lines = text.split('\n');
 
-                // 'Wellpath Report' kısmının başlangıç indeksini bul
+                // 'Wellpath Report' ve 'Comments' başlıklarının indekslerini bul
                 const startIndex = lines.findIndex(line => line.includes('Wellpath Report')) + 1;
+                const endIndex = lines.findIndex(line => line.includes('Comments'));
 
-                // Boş satırları bul ve 'Wellpath Report' kısmının bitiş indeksini belirle
-                const endIndex = lines.findIndex((line, index) => index > startIndex && !line.trim());
-
-                if (startIndex === -1 || endIndex === -1) {
-                    console.error("Wellpath Report kısmı bulunamadı.");
+                if (startIndex === 0 || endIndex === -1) {
+                    console.error("Wellpath Report veya Comments başlığı bulunamadı.");
                     return [];
                 }
 
-                // 'Wellpath Report' kısmındaki satırları al
+                // 'Wellpath Report' ve 'Comments' arası satırları al
                 const reportLines = lines.slice(startIndex, endIndex).filter(line => line.trim() !== '');
                 if (reportLines.length === 0) {
                     console.error("Wellpath Report kısmında veri bulunamadı.");
@@ -243,7 +241,7 @@
 
                 const y = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                    .range([marginTop, height - marginBottom]);
+                    .range([height - marginBottom, marginTop]);
 
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
@@ -262,28 +260,66 @@
                     .join("g")
                     .attr("fill", d => color(d.key))
                     .selectAll("rect")
-                    .data(D => D.map(d => (d.key = D.key, d)))
+                    .data(d => d)
                     .join("rect")
-                    .attr("x", d => x(d.data[0]))
-                    .attr("y", d => y(d[0]))
-                    .attr("height", d => y(d[1]) - y(d[0]))
-                    .attr("width", x.bandwidth())
-                    .append("title")
-                    .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
+                    .attr("x", (d, i) => x(d.data[0]))
+                    .attr("y", d => y(d[1]))
+                    .attr("height", d => y(d[0]) - y(d[1]))
+                    .attr("width", x.bandwidth());
 
                 svg.append("g")
-                    .attr("transform", `translate(0, ${height - marginBottom})`)
+                    .attr("transform", `translate(0,${height - marginBottom})`)
                     .call(d3.axisBottom(x).tickSizeOuter(0))
-                    .call(g => g.selectAll(".domain").remove());
+                    .call(g => g.selectAll(".domain").remove())
+                    .append("text")
+                    .attr("x", width / 2)
+                    .attr("y", marginBottom * 1.5)
+                    .attr("fill", "currentColor")
+                    .attr("text-anchor", "middle")
+                    .text("Kuyu Formasyonu");
 
                 svg.append("g")
-                    .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y).ticks(null, "s"))
-                    .call(g => g.selectAll(".domain").remove());
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(d3.axisLeft(y))
+                    .call(g => g.select(".domain").remove())
+                    .append("text")
+                    .attr("x", -marginLeft)
+                    .attr("y", 10)
+                    .attr("fill", "currentColor")
+                    .attr("text-anchor", "start")
+                    .text("Derinlik (TVD)");
+
+                const legend = svg => {
+                    const g = svg
+                        .attr("transform", `translate(${width},0)`)
+                        .attr("text-anchor", "end")
+                        .attr("font-family", "sans-serif")
+                        .attr("font-size", 10)
+                        .selectAll("g")
+                        .data(color.domain().slice().reverse())
+                        .join("g")
+                        .attr("transform", (d, i) => `translate(0,${(i + 0.5) * 20})`);
+
+                    g.append("rect")
+                        .attr("x", -19)
+                        .attr("width", 19)
+                        .attr("height", 19)
+                        .attr("fill", color);
+
+                    g.append("text")
+                        .attr("x", -24)
+                        .attr("y", 9.5)
+                        .attr("dy", "0.35em")
+                        .text(d => d);
+                };
+
+                svg.append("g").call(legend);
             }
 
-            function drawChart2(data) {
+            function drawChart2(rawData) {
                 d3.select("#plot2").select("svg").remove();  // Önceki grafiği temizle
+
+                const data = rawData.map(d => d.MD);
 
                 const width = 300;
                 const height = 500;
@@ -292,12 +328,13 @@
                 const marginBottom = 20;
                 const marginLeft = 40;
 
-                const x = d3.scaleLinear()
-                    .domain([0, d3.max(data, d => d.MD)])
-                    .range([marginLeft, width - marginRight]);
+                const x = d3.scaleBand()
+                    .domain(["MD"])
+                    .range([marginLeft, width - marginRight])
+                    .padding(0.1);
 
                 const y = d3.scaleLinear()
-                    .domain([d3.min(data, d => d.TVD), d3.max(data, d => d.TVD)])
+                    .domain([0, d3.max(data)])
                     .range([height - marginBottom, marginTop]);
 
                 const svg = d3.select("#plot2").append("svg")
@@ -307,24 +344,38 @@
                     .attr("style", "max-width: 100%; height: auto;");
 
                 svg.append("g")
-                    .selectAll("circle")
+                    .selectAll("rect")
                     .data(data)
-                    .join("circle")
-                    .attr("cx", d => x(d.MD))
-                    .attr("cy", d => y(d.TVD))
-                    .attr("r", 3)
-                    .attr("fill", "blue");
+                    .join("rect")
+                    .attr("x", x("MD"))
+                    .attr("y", d => y(d))
+                    .attr("height", d => y(0) - y(d))
+                    .attr("width", x.bandwidth())
+                    .attr("fill", "#007bff");
 
                 svg.append("g")
-                    .attr("transform", `translate(0, ${height - marginBottom})`)
-                    .call(d3.axisBottom(x).ticks(10))
-                    .call(g => g.selectAll(".domain").remove());
+                    .attr("transform", `translate(0,${height - marginBottom})`)
+                    .call(d3.axisBottom(x).tickSizeOuter(0))
+                    .call(g => g.selectAll(".domain").remove())
+                    .append("text")
+                    .attr("x", width / 2)
+                    .attr("y", marginBottom * 1.5)
+                    .attr("fill", "currentColor")
+                    .attr("text-anchor", "middle")
+                    .text("MD Değerleri");
 
                 svg.append("g")
-                    .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y).ticks(10))
-                    .call(g => g.selectAll(".domain").remove());
+                    .attr("transform", `translate(${marginLeft},0)`)
+                    .call(d3.axisLeft(y))
+                    .call(g => g.select(".domain").remove())
+                    .append("text")
+                    .attr("x", -marginLeft)
+                    .attr("y", 10)
+                    .attr("fill", "currentColor")
+                    .attr("text-anchor", "start")
+                    .text("MD (Measured Depth)");
             }
+
         });
     </script>
 </body>

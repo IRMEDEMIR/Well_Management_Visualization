@@ -75,6 +75,8 @@
             const fileInput2 = document.getElementById('fileInput2');
             const filenameDisplay2 = document.getElementById('filename2');
 
+            let originalFormations = [];  // originalFormations değişkenini global olarak tanımlıyoruz
+
             dropzone.addEventListener('click', function () {
                 fileInput.click();
             });
@@ -141,7 +143,8 @@
                     reader.onload = function (e) {
                         const text = e.target.result;
                         const rawData = d3.dsvFormat(";").parse(text);
-                        drawChart(rawData);
+                        originalFormations = rawData;  // Verileri kaydediyoruz
+                        drawChart(originalFormations);
                     };
                     reader.readAsText(file);
                 }
@@ -154,28 +157,25 @@
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         const text = e.target.result;
-                        const rawData = parseWellpathReport(text);
-                        drawChart2(rawData);
+                        const wellboreData = parseWellpathReport(text);
+                        drawChart2(wellboreData);
                     };
                     reader.readAsText(file);
                 }
             }
-
             function parseWellpathReport(text) {
                 const lines = text.split('\n');
 
-                // 'Wellpath Report' kısmının başlangıç indeksini bul
+                // 'Wellpath Report' ve 'Comments' başlıklarının indekslerini bul
                 const startIndex = lines.findIndex(line => line.includes('Wellpath Report')) + 1;
+                const endIndex = lines.findIndex(line => line.includes('Comments'));
 
-                // Boş satırları bul ve 'Wellpath Report' kısmının bitiş indeksini belirle
-                const endIndex = lines.findIndex((line, index) => index > startIndex && !line.trim());
-
-                if (startIndex === -1 || endIndex === -1) {
-                    console.error("Wellpath Report kısmı bulunamadı.");
+                if (startIndex === 0 || endIndex === -1) {
+                    console.error("Wellpath Report veya Comments başlığı bulunamadı.");
                     return [];
                 }
 
-                // 'Wellpath Report' kısmındaki satırları al
+                // 'Wellpath Report' ve 'Comments' arası satırları al
                 const reportLines = lines.slice(startIndex, endIndex).filter(line => line.trim() !== '');
                 if (reportLines.length === 0) {
                     console.error("Wellpath Report kısmında veri bulunamadı.");
@@ -194,17 +194,28 @@
 
                     const [MD, Inc, Azi, TVD] = values;
 
+                    // NaN olan değerleri filtrele
+                    const parsedMD = parseFloat(MD);
+                    const parsedInc = parseFloat(Inc);
+                    const parsedAzi = parseFloat(Azi);
+                    const parsedTVD = parseFloat(TVD);
+
+                    if (isNaN(parsedMD) || isNaN(parsedInc) || isNaN(parsedAzi) || isNaN(parsedTVD)) {
+                        return null;
+                    }
+
                     return {
-                        MD: parseFloat(MD),
-                        Inc: parseFloat(Inc),
-                        Azi: parseFloat(Azi),
-                        TVD: parseFloat(TVD)
+                        MD: parsedMD,
+                        Inc: parsedInc,
+                        Azi: parsedAzi,
+                        TVD: parsedTVD
                     };
                 }).filter(d => d !== null);
             }
 
+
             function drawChart(rawData) {
-                d3.select("#plot").select("svg").remove();  // Önceki grafiği temizle
+                d3.select("#plot").select("svg").remove();
 
                 const data = rawData.map((d, i) => {
                     if (i === 0) {
@@ -267,24 +278,54 @@
                     .attr("x", d => x(d.data[0]))
                     .attr("y", d => y(d[0]))
                     .attr("height", d => y(d[1]) - y(d[0]))
-                    .attr("width", x.bandwidth())
-                    .append("title")
-                    .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
+                    .attr("width", x.bandwidth());
 
                 svg.append("g")
-                    .attr("transform", `translate(0, ${height - marginBottom})`)
-                    .call(d3.axisBottom(x).tickSizeOuter(0))
-                    .call(g => g.selectAll(".domain").remove());
+                    .attr("transform", `translate(0,${marginTop})`)
+                    .call(d3.axisLeft(y))
+                    .call(g => g.select(".domain").remove());
 
                 svg.append("g")
                     .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y).ticks(null, "s"))
+                    .call(d3.axisLeft(y).ticks(null))
                     .call(g => g.selectAll(".domain").remove());
             }
 
-            function drawChart2(data) {
-                d3.select("#plot2").select("svg").remove();  // Önceki grafiği temizle
+            function drawChart2(wellboreData) {
+                if (originalFormations.length === 0) {
+                    console.error("Önce formasyon dosyası yükleyin.");
+                    return;
+                }
 
+                // Mevcut formasyonları kopyalayarak başlıyoruz.
+                let formations = [...originalFormations];
+
+                console.log("Wellbore Data:", wellboreData);
+                console.log("Original Formations:", originalFormations);
+
+                // Formasyonları güncelleme
+                formations.forEach(formation => {
+                    let newDepth = formation['Alt Derinlik (TVD)'] - formation['Üst Derinlik (TVD)']; // Başlangıçta, yeni derinlik üst derinlik olarak ayarlanır.
+
+                    // Wellbore verileri üzerinden formasyon derinliklerini güncelleme
+                    wellboreData.forEach(wellbore => {
+                        if (wellbore.TVD >= formation['Üst Derinlik (TVD)'] && wellbore.TVD <= formation['Alt Derinlik (TVD)']) {
+                            if (wellbore.Inc !== 0) {
+                                newDepth += (wellbore.TVD - wellbore.MD);  // Delta MD'yi topluyoruz.
+                            }
+                        } else {
+                            return;
+                        }
+                    });
+
+                    // Yeni hesaplanan Alt Derinlik (TVD) değerini formasyonun güncellenmiş derinlik olarak ayarla
+                    formation['Alt Derinlik (TVD)'] = newDepth;
+
+                    // Yeni Alt Derinlik (TVD) değerini konsola yazdırma
+                    console.log(`Formasyon: ${formation['Formasyon']}, Yeni Alt Derinlik (TVD): ${formation['Alt Derinlik (TVD)']}`);
+                });
+
+                // Verileri grafiğe dönüştürme
                 const width = 300;
                 const height = 500;
                 const marginTop = 10;
@@ -292,13 +333,42 @@
                 const marginBottom = 20;
                 const marginLeft = 40;
 
-                const x = d3.scaleLinear()
-                    .domain([0, d3.max(data, d => d.MD)])
-                    .range([marginLeft, width - marginRight]);
+                const data = formations.map((d, i) => {
+                    if (i === 0) {
+                        return {
+                            state: "Kuyu",
+                            formasyon: d.Formasyon,
+                            depth: +d["Alt Derinlik (TVD)"]
+                        };
+                    } else {
+                        const previousDepth = +formations[i - 1]["Alt Derinlik (TVD)"];
+                        const currentDepth = +d["Alt Derinlik (TVD)"];
+                        return {
+                            state: "Kuyu",
+                            formasyon: d.Formasyon,
+                            depth: currentDepth - previousDepth
+                        };
+                    }
+                });
+
+                const series = d3.stack()
+                    .keys(d3.union(data.map(d => d.formasyon)))
+                    .value(([, D], key) => D.get(key).depth)
+                    (d3.index(data, d => d.state, d => d.formasyon));
+
+                const x = d3.scaleBand()
+                    .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
+                    .range([marginLeft, width - marginRight])
+                    .padding(0.1);
 
                 const y = d3.scaleLinear()
-                    .domain([d3.min(data, d => d.TVD), d3.max(data, d => d.TVD)])
-                    .range([height - marginBottom, marginTop]);
+                    .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+                    .range([marginTop, height - marginBottom]);
+
+                const color = d3.scaleOrdinal()
+                    .domain(series.map(d => d.key))
+                    .range(d3.schemeSpectral[series.length])
+                    .unknown("#ccc");
 
                 const svg = d3.select("#plot2").append("svg")
                     .attr("width", width)
@@ -307,24 +377,31 @@
                     .attr("style", "max-width: 100%; height: auto;");
 
                 svg.append("g")
-                    .selectAll("circle")
-                    .data(data)
-                    .join("circle")
-                    .attr("cx", d => x(d.MD))
-                    .attr("cy", d => y(d.TVD))
-                    .attr("r", 3)
-                    .attr("fill", "blue");
+                    .selectAll("g")
+                    .data(series)
+                    .join("g")
+                    .attr("fill", d => color(d.key))
+                    .selectAll("rect")
+                    .data(D => D.map(d => (d.key = D.key, d)))
+                    .join("rect")
+                    .attr("x", d => x(d.data[0]))
+                    .attr("y", d => y(d[0]))
+                    .attr("height", d => y(d[1]) - y(d[0]))
+                    .attr("width", x.bandwidth());
 
                 svg.append("g")
-                    .attr("transform", `translate(0, ${height - marginBottom})`)
-                    .call(d3.axisBottom(x).ticks(10))
-                    .call(g => g.selectAll(".domain").remove());
+                    .attr("transform", `translate(0,${marginTop})`)
+                    .call(d3.axisLeft(y))
+                    .call(g => g.select(".domain").remove());
 
                 svg.append("g")
                     .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y).ticks(10))
+                    .call(d3.axisLeft(y).ticks(null))
                     .call(g => g.selectAll(".domain").remove());
             }
+
+
+
         });
     </script>
 </body>

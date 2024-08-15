@@ -57,20 +57,21 @@
             text-align: center;
         }
 
+
     </style>
     <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
 <body>
-    
+
 
     <div id="plot-container">
         <div id="dropzone">
-            Yer altı formasyonu için sürükleyip bırakın veya dosya seçin: 
+            Yer altı formasyonu için sürükleyip bırakın veya dosya seçin:
             <input type="file" id="fileInput" style="display: none;">
             <div id="filename"></div>
         </div>
         <div id="dropzone2">
-            Kuyu formasyonu için sürükleyip bırakın veya dosya seçin: 
+            Kuyu formasyonu için sürükleyip bırakın veya dosya seçin:
             <input type="file" id="fileInput2" style="display: none;">
             <div id="filename2"></div>
         </div>
@@ -262,12 +263,15 @@
                 });
 
 
-                const width = 300;
-                const height = 600;
-                const marginTop = 10;
+                const plotWidth = 400; // Grafiğin genişliği
+                const tableWidth = 300; // Tablo genişliği
+                const width = plotWidth + tableWidth + 100; // Toplam genişlik (boşluk bırakmak için ek genişlik)
+                const height = 700;
+                const marginTop = 60; // Grafiği ve tabloyu aşağı almak için arttırıldı
                 const marginRight = 10;
-                const marginBottom = 20;
-                const marginLeft = 40;
+                const marginBottom = 40;
+                const marginLeft = 60; // Tablo için genişletildi
+
 
                 const series = d3.stack()
                     .keys(d3.union(data.map(d => d.formasyon)))
@@ -276,7 +280,7 @@
 
                 const x = d3.scaleBand()
                     .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
-                    .range([marginLeft, width - marginRight])
+                    .range([marginLeft, plotWidth - marginRight])
                     .padding(0.1);
 
                 const y = d3.scaleLinear()
@@ -319,6 +323,36 @@
                         .tickFormat(d3.format("d"))) // Bu satır 100'er 100'er aralık ayarlamayı sağlar
                     .call(g => g.select(".domain").remove());
 
+                // Tabloyu ekle
+                const tableData = rawData.map(d => ({
+                    formasyon: d.Formasyon,
+                    top: d["Üst Derinlik (TVD)"],
+                    bottom: d["Alt Derinlik (TVD)"]
+                }));
+
+                const tableGroup = svg.append("g")
+                    .attr("transform", `translate(${plotWidth + marginLeft}, ${marginTop})`);
+
+                const table = tableGroup.append("foreignObject")
+                    .attr("width", tableWidth)
+                    .attr("height", height - marginTop - marginBottom)
+                    .append("xhtml:table")
+                    .style("border-collapse", "collapse")
+                    .style("width", "100%");
+
+                const header = table.append("thead").append("tr");
+                header.append("th").text("Formasyon").style("border", "1px solid #ddd").style("padding", "8px");
+                header.append("th").text("Üst Derinlik (TVD)").style("border", "1px solid #ddd").style("padding", "8px");
+                header.append("th").text("Alt Derinlik (TVD)").style("border", "1px solid #ddd").style("padding", "8px");
+
+                const body = table.append("tbody");
+                tableData.forEach(d => {
+                    const row = body.append("tr");
+                    row.append("td").text(d.formasyon).style("border", "1px solid #ddd").style("padding", "8px");
+                    row.append("td").text(d.top).style("border", "1px solid #ddd").style("padding", "8px");
+                    row.append("td").text(d.bottom).style("border", "1px solid #ddd").style("padding", "8px");
+                });
+
                 // Zoom fonksiyonu
                 function zoom(svg) {
                     const extent = [[marginLeft, marginTop], [width - marginRight, height - marginBottom]];
@@ -339,7 +373,6 @@
                             .tickFormat(d3.format("d"))); // Zoom sırasında da 100'er 100'er aralıkları tut
                     }
                 }
-
 
             }
 
@@ -442,47 +475,43 @@
 
                     // Güncellenmiş alt derinliği kaydet
                     previousBottomMD = newBottomMD || previousBottomMD;
-                    formation['Alt Derinlik (TVD)'] = newBottomMD - newTopMD;
+                    formation['Üst Derinlik (TVD)'] = newTopMD;
+                    formation['Alt Derinlik (TVD)'] = newBottomMD;
 
                     console.log(`Formasyon: ${formation['Formasyon']}, Yeni Üst Derinlik(MD): ${newTopMD}, Yeni Alt Derinlik(MD): ${newBottomMD}`);
                 });
 
                 const data = formations.map((d, i) => {
-                    if (i === 0) {
-                        return {
-                            state: "Kuyu",
-                            formasyon: d.Formasyon,
-                            depth: +d["Alt Derinlik (TVD)"]
-                        };
-                    } else {
-                        return {
-                            state: "Kuyu",
-                            formasyon: d.Formasyon,
-                            depth: +d["Alt Derinlik (TVD)"]
-                        };
-                    }
+                    const depth = d['Alt Derinlik (TVD)'] - d['Üst Derinlik (TVD)']; // Yeni depth hesaplama
+                    return {
+                        state: "Kuyu",
+                        formasyon: d.Formasyon,
+                        depth: depth
+                    };
                 });
 
-                const width = 300;
-                const height = 600;
-                const marginTop = 10;
+                const plotWidth = 400; // Grafiğin genişliği
+                const tableWidth = 300; // Tablo genişliği
+                const width = plotWidth + tableWidth + 100; // Toplam genişlik (boşluk bırakmak için ek genişlik)
+                const height = 700;
+                const marginTop = 60; // Grafiği ve tabloyu aşağı almak için arttırıldı
                 const marginRight = 10;
-                const marginBottom = 20;
-                const marginLeft = 40;
+                const marginBottom = 40; // Alt margin, grafiği ve tabloyu aşağı almak için arttırıldı
+                const marginLeft = 60; // Tablo için genişletildi
 
                 const series = d3.stack()
                     .keys(d3.union(data.map(d => d.formasyon)))
                     .value(([, D], key) => D.get(key).depth)
                     (d3.index(data, d => d.state, d => d.formasyon));
 
-                const xScale = d3.scaleBand()
+                const x = d3.scaleBand()
                     .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
-                    .range([marginLeft, width - marginRight])
+                    .range([marginLeft, plotWidth - marginRight])
                     .padding(0.1);
 
-                const yScale = d3.scaleLinear()
+                const y = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                    .range([marginTop, height - marginBottom]);
+                    .range([marginTop, height - marginBottom]); // Y ekseni yukarıdan aşağıya doğru artacak şekilde ayarlandı
 
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
@@ -494,8 +523,9 @@
                     .attr("height", height)
                     .attr("viewBox", [0, 0, width, height])
                     .attr("style", "max-width: 100%; height: auto;")
-                    .call(zoom);
+                    .call(zoom); // Zoom davranışı burada ekleniyor
 
+                // Çubukları ekle
                 svg.append("g")
                     .selectAll("g")
                     .data(series)
@@ -504,20 +534,54 @@
                     .selectAll("rect")
                     .data(D => D.map(d => (d.key = D.key, d)))
                     .join("rect")
-                    .attr("x", d => xScale(d.data[0]))
-                    .attr("y", d => yScale(d[0]))
-                    .attr("height", d => yScale(d[1]) - yScale(d[0]))
-                    .attr("width", xScale.bandwidth())
+                    .attr("x", d => x(d.data[0]))
+                    .attr("y", d => y(d[0])) // Zoom işlemi için güncellendi
+                    .attr("height", d => y(d[1]) - y(d[0])) // Zoom işlemi için güncellendi
+                    .attr("width", x.bandwidth())
                     .append("title")
                     .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
 
+                // Y eksenini ekle ve aralıkları 100'er 100'er ayarla
                 const yAxis = svg.append("g")
                     .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(yScale)
-                        .ticks(Math.ceil((yScale.domain()[1] - yScale.domain()[0]) / 100))
-                        .tickFormat(d3.format("d")))
+                    .call(d3.axisLeft(y)
+                        .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
+                        .tickFormat(d3.format("d"))) // Bu satır 100'er 100'er aralık ayarlamayı sağlar
                     .call(g => g.select(".domain").remove());
 
+
+                // Tabloyu ekle
+                const tableData = formations.map(d => ({
+                    formasyon: d.Formasyon,
+                    top: d["Üst Derinlik (TVD)"],
+                    bottom: d["Alt Derinlik (TVD)"]
+                }));
+
+                const tableGroup = svg.append("g")
+                    .attr("transform", `translate(${plotWidth + marginLeft}, ${marginTop})`);
+
+                const table = tableGroup.append("foreignObject")
+                    .attr("width", tableWidth)
+                    .attr("height", height - marginTop - marginBottom)
+                    .append("xhtml:table")
+                    .style("border-collapse", "collapse")
+                    .style("width", "100%");
+
+                const header = table.append("thead").append("tr");
+                header.append("th").text("Formasyon").style("border", "1px solid #ddd").style("padding", "8px");
+                header.append("th").text("Yeni Üst Derinlik (TVD)").style("border", "1px solid #ddd").style("padding", "8px");
+                header.append("th").text("Yeni Alt Derinlik (TVD)").style("border", "1px solid #ddd").style("padding", "8px");
+
+                const body = table.append("tbody");
+                tableData.forEach(d => {
+                    const row = body.append("tr");
+                    row.append("td").text(d.formasyon).style("border", "1px solid #ddd").style("padding", "8px");
+                    row.append("td").text(d.top.toFixed(2)).style("border", "1px solid #ddd").style("padding", "8px");
+                    row.append("td").text(d.bottom.toFixed(2)).style("border", "1px solid #ddd").style("padding", "8px");
+                });
+
+
+                // Zoom fonksiyonu
                 function zoom(svg) {
                     const extent = [[marginLeft, marginTop], [width - marginRight, height - marginBottom]];
 
@@ -528,13 +592,13 @@
                         .on("zoom", zoomed));
 
                     function zoomed(event) {
-                        yScale.range([marginTop, height - marginBottom].map(d => event.transform.applyY(d)));
+                        y.range([marginTop, height - marginBottom].map(d => event.transform.applyY(d)));
                         svg.selectAll("rect")
-                            .attr("y", d => yScale(d[0]))
-                            .attr("height", d => yScale(d[1]) - yScale(d[0]));
-                        yAxis.call(d3.axisLeft(yScale)
-                            .ticks(Math.ceil((yScale.domain()[1] - yScale.domain()[0]) / 100))
-                            .tickFormat(d3.format("d")));
+                            .attr("y", d => y(d[0]))
+                            .attr("height", d => y(d[1]) - y(d[0]));
+                        yAxis.call(d3.axisLeft(y)
+                            .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
+                            .tickFormat(d3.format("d"))); // Zoom sırasında da 100'er 100'er aralıkları tut
                     }
                 }
             }

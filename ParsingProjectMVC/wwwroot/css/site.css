@@ -31,4 +31,23 @@ body {
 .navbar-brand {
     display: flex;
     align-items: center;
+    margin-right: 10px;
 }
+
+.navbar-brand img {
+        margin-right: 10px; /* Logonun saðýnda boþluk */
+    }
+
+.navbar-nav .nav-link {
+    padding-left: 15px; /* Metnin solunda boþluk */
+}
+
+.navbar {
+    background: linear-gradient(90deg, rgba(223, 30, 37, 1) 20%, rgba(255, 69, 0, 1) 80%);
+    color: white;
+}
+
+.navbar-brand, .nav-link {
+    color: white !important;
+}
+

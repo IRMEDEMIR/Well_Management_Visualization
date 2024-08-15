@@ -2,13 +2,24 @@
 
 <div class="container mt-5">
     <div class="text-center">
-        <h1 class="display-4">Sahalar</h1>
+        <h1 class="display-4 mb-4" style="color: black;">Sahalar</h1>
         <div class="d-flex justify-content-center mb-4">
-            <form asp-action="Create" method="post" class="d-flex" style="max-width: 500px;">
+            <form asp-action="Create" method="post" class="d-flex" style="max-width: 600px;">
                 <input type="text" name="sahaAdi" class="form-control me-2" placeholder="Saha Adını Giriniz" required />
                 <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
                 <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
-                <button type="submit" class="btn btn-success">Ekle</button>
+                <button type="submit" class="btn" style="
+                    background-color: transparent !important;
+                    color: #ef0d0d;
+                    border: 2px solid #ef0d0d;
+                    border-radius: 5px; /* İsteğe bağlı: köşeleri yuvarlatmak için */
+                    padding: 8px 16px; /* İsteğe bağlı: iç boşluk ayarlamak için */
+                    font-size: 16px; /* İsteğe bağlı: yazı boyutunu ayarlamak için */
+                    font-weight: bold; /* İsteğe bağlı: yazıyı kalın yapmak için */
+                ">
+                    Ekle
+                </button>
+
             </form>
         </div>
 
@@ -28,10 +39,10 @@
             </div>
         }
 
-        <div class="card shadow-sm">
+        <div class="card shadow-lg">
             <div class="card-body">
-                <table class="table table-hover">
-                    <thead class="table-dark">
+                <table class="table table-hover table-striped">
+                    <thead style="background-color: rgba(249, 61, 7, 1); color: white;">
                         <tr>
                             <th>ID</th>
                             <th>Saha Adı</th>
@@ -45,12 +56,12 @@
                                 <td>@saha.Id</td>
                                 <td>@saha.SahaAdi</td>
                                 <td>
-                                    <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@saha.Id', '@saha.SahaAdi')">Güncelle</a>
+                                    <a href="#" class="btn" style="background-color: #a2a29f; color: white;" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateFields('@saha.Id', '@saha.SahaAdi')">Güncelle</a>
                                     <form asp-action="Delete" asp-controller="Sahalar" method="post" style="display:inline;">
                                         <input type="hidden" name="id" value="@saha.Id" />
                                         <input type="hidden" name="pageNumber" value="@ViewBag.PageNumber" />
                                         <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
-                                        <button type="submit" class="btn btn-danger btn-sm ms-2">Sil</button>
+                                        <button type="submit" class="btn" style="background-color: #ef0d0d; color: white;" class="ms-2">Sil</button>
                                     </form>
                                 </td>
                             </tr>
@@ -60,12 +71,12 @@
             </div>
         </div>
 
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mt-4">
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
                 @for (int i = 1; i <= Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize); i++)
                 {
                     <li class="page-item @(ViewBag.PageNumber == i ? "active" : "")">
-                        <a class="page-link" href="/Sahalar/Index?pageNumber=@i&pageSize=@ViewBag.PageSize">@i</a>
+                        <a class="page-link" href="/Sahalar/Index?pageNumber=@i&pageSize=@ViewBag.PageSize" style="background-color: @(ViewBag.PageNumber == i ? "#df1e25" : "white"); color: @(ViewBag.PageNumber == i ? "white" : "#df1e25");">@i</a>
                     </li>
                 }
             </ul>
@@ -77,7 +88,7 @@
 <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header" style="background-color: #df1e25; color: white;">
                 <h5 class="modal-title" id="updateModalLabel">Saha Güncelle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
@@ -93,7 +104,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-                    <button type="submit" class="btn btn-primary">Güncelle</button>
+                    <button type="submit" class="btn" style="background-color: #df1e25; color: white;">Güncelle</button>
                 </div>
             </form>
         </div>

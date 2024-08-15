@@ -344,77 +344,53 @@
             }
 
             function calculation_MD(wellboreData) {
-                let x = [];
-                let y = [];
-                let z = [];
+                let xCoords = [];
+                let yCoords = [];
+                let zCoords = [];
                 let md = [];
 
-                let previousX = [];
-                let previousY = [];
-                let previousZ = null;
+                let previousX = 0;
+                let previousY = 0;
+                let previousZ = 0;
                 let cumulativeMD = 0;
 
                 wellboreData.forEach((wellbore, index) => {
                     let radAzi = wellbore.Azi * (Math.PI / 180);
 
-                    // Debug: Log input data and current values
-                    console.log(`Iteration ${index}:`);
-                    console.log(`Input - Azi: ${wellbore.Azi}, VS: ${wellbore.VS}, TVD: ${wellbore.TVD}`);
-                    console.log(`RadAzi: ${radAzi}`);
+                    // Koordinatlar hesaplanıyor
+                    let currentX = wellbore.VS * Math.sin(radAzi);
+                    let currentY = wellbore.VS * Math.cos(radAzi);
+                    let currentZ = wellbore.TVD;
 
-                    if (wellbore.Azi === 0 && x.length > 0 && y.length > 0) {
-                        x.push(previousX);
-                        y.push(previousY);
-
-                        // Debug: Log previous values used for current coordinates
-                        console.log(`Azi is 0 - Using previous X: ${previousX}, previous Y: ${previousY}`);
+                    if (index === 0) {
+                        // İlk noktada MD, TVD'ye eşit olur
+                        xCoords.push(0);
+                        yCoords.push(0);
+                        zCoords.push(currentZ);
+                        md.push(currentZ);
                     } else {
-                        previousX = wellbore.VS * Math.sin(radAzi);
-                        previousY = wellbore.VS * Math.cos(radAzi);
-                        x.push(previousX);
-                        y.push(previousY);
+                        // Delta değerlerini hesaplama
+                        let deltaX = currentX - previousX;
+                        let deltaY = currentY - previousY;
+                        let deltaZ = currentZ - previousZ;
 
-                        // Debug: Log newly calculated values
-                        console.log(`Calculated - X: ${previousX}, Y: ${previousY}`);
-                    }
-                    z.push(wellbore.TVD);
-
-                    // Debug: Log z values
-                    console.log(`Z: ${wellbore.TVD}`);
-
-                    // MD hesaplama
-                    if (x.length > 1 && y.length > 1 && z.length > 1) {
-                        let deltaX = x[x.length - 1] - x[x.length - 2];
-                        let deltaY = y[y.length - 1] - y[y.length - 2];
-                        let deltaZ = z[z.length - 1] - z[z.length - 2];
                         let deltaMD = Math.sqrt(deltaX ** 2 + deltaY ** 2 + deltaZ ** 2);
                         cumulativeMD += deltaMD;
-                        md.push(cumulativeMD);
 
-                        // Debug: Log delta values and MD calculation
-                        console.log(`DeltaX: ${deltaX}, DeltaY: ${deltaY}, DeltaZ: ${deltaZ}`);
-                        console.log(`DeltaMD: ${deltaMD}, CumulativeMD: ${cumulativeMD}`);
-                    } else {
-                        md.push(wellbore.TVD); // İlk noktada MD sıfır olur
-                        cumulativeMD = md[0];
-                        // Debug: Log MD value for the first point
-                        console.log(`MD for the first point: 0`);
+                        xCoords.push(currentX);
+                        yCoords.push(currentY);
+                        zCoords.push(currentZ);
+                        md.push(cumulativeMD);
                     }
 
-                    // Debug: Log current state of x, y, z, and md arrays
-                    console.log(`x: ${x}`);
-                    console.log(`y: ${y}`);
-                    console.log(`z: ${z}`);
-                    console.log(`md: ${md}`);
-                    console.log('------------------------------------');
+                    // Önceki koordinatları güncelle
+                    previousX = currentX;
+                    previousY = currentY;
+                    previousZ = currentZ;
                 });
 
                 return md;
-
-
-
             }
-
 
             function drawChart2(wellboreData) {
                 if (originalFormations.length === 0) {
@@ -422,39 +398,67 @@
                     return;
                 }
 
+                if (originalFormations.length === 0) {
+                    console.error("Önce formasyon dosyası yükleyin.");
+                    return;
+                }
 
-                // Mevcut formasyonları kopyalayarak başlıyoruz.
                 let formations = [...originalFormations];
+                let lastWellboreMD = wellboreData[wellboreData.length - 1]?.MD || 0;
 
-                console.log("Wellbore Data:", wellboreData);
-                console.log("Original Formations:", originalFormations);
-                let mdValues = calculation_MD(wellboreData);
+                let previousBottomMD = 0;  // Önceki formasyonun alt derinliği
 
-                // Formasyonları güncelleme
-                formations.forEach(formation => {
-                    let newDepth = formation['Alt Derinlik (TVD)'] - formation['Üst Derinlik (TVD)']; // Başlangıçta, yeni derinlik üst derinlik olarak ayarlanır.
-                    let newDepth2 = 0;
+                formations.forEach((formation, index) => {
+                    let originalTopDepth = formation['Üst Derinlik (TVD)'];
+                    let originalBottomDepth = formation['Alt Derinlik (TVD)'];
 
-                    // Wellbore verileri üzerinden formasyon derinliklerini güncelleme
-                    wellboreData.forEach((wellbore, index) => {
-                        if (wellbore.TVD >= formation['Üst Derinlik (TVD)'] && wellbore.TVD <= formation['Alt Derinlik (TVD)']) {
-                            if (wellbore.Inc !== 0) {
+                    let newTopMD = null;
+                    let newBottomMD = null;
 
-                                newDepth2 = mdValues[index] - wellbore.TVD;  // Delta MD'yi topluyoruz.
-                            }
-                        } else {
-                            return;
+                    let foundTop = false;
+                    let foundBottom = false;
+
+                    // Üst Derinlik (TVD) için MD hesaplama
+                    for (let i = 0; i < wellboreData.length - 1; i++) {
+                        let current = wellboreData[i];
+                        let next = wellboreData[i + 1];
+
+                        if (current.TVD <= originalTopDepth && next.TVD >= originalTopDepth) {
+                            let ratio = (originalTopDepth - current.TVD) / (next.TVD - current.TVD);
+                            newTopMD = current.MD + ratio * (next.MD - current.MD);
+                            foundTop = true;
                         }
-                    });
 
-                    // Yeni hesaplanan Alt Derinlik (TVD) değerini formasyonun güncellenmiş derinlik olarak ayarla
-                    formation['Alt Derinlik (TVD)'] = newDepth + newDepth2;
+                        if (current.TVD <= originalBottomDepth && next.TVD >= originalBottomDepth) {
+                            let ratio = (originalBottomDepth - current.TVD) / (next.TVD - current.TVD);
+                            newBottomMD = current.MD + ratio * (next.MD - current.MD);
+                            foundBottom = true;
+                        }
+                    }
 
-                    // Yeni Alt Derinlik (TVD) değerini konsola yazdırma
-                    console.log(`Formasyon: ${ formation['Formasyon']}, Yeni Alt Derinlik(TVD): ${ formation['Alt Derinlik (TVD)']}`);
+                    if (!foundTop) {
+                        if (originalTopDepth > lastWellboreMD) {
+                            newTopMD = previousBottomMD; // Önceki alt derinliği kullan
+                        }
+                    }
+
+                    if (!foundBottom) {
+                        if (originalBottomDepth > lastWellboreMD) {
+                            // TVD verisinin bittiği yerden sonra formasyonun alt derinliğini hesaplama
+                            newBottomMD = previousBottomMD + (originalBottomDepth - originalTopDepth); // Kendi derinlik farkını ekleyin
+                        }
+                    }
+
+                    // Formasyonun alt derinlik hesaplaması
+                    if (newBottomMD === null && previousBottomMD !== null) {
+                        newBottomMD = previousBottomMD + (originalBottomDepth - originalTopDepth);
+                    }
+
+                    // Güncellenmiş alt derinliği kaydet
+                    previousBottomMD = newBottomMD || previousBottomMD;
+
+                    console.log(`Formasyon: ${formation['Formasyon']}, Yeni Üst Derinlik(MD): ${newTopMD}, Yeni Alt Derinlik(MD): ${newBottomMD}`);
                 });
-
-
 
                 const data = formations.map((d, i) => {
                     if (i === 0) {
@@ -464,7 +468,6 @@
                             depth: +d["Alt Derinlik (TVD)"]
                         };
                     } else {
-                        const previousDepth = +formations[i - 1]["Alt Derinlik (TVD)"];
                         return {
                             state: "Kuyu",
                             formasyon: d.Formasyon,
@@ -485,14 +488,14 @@
                     .value(([, D], key) => D.get(key).depth)
                     (d3.index(data, d => d.state, d => d.formasyon));
 
-                const x = d3.scaleBand()
+                const xScale = d3.scaleBand()
                     .domain(d3.groupSort(data, D => -d3.sum(D, d => d.depth), d => d.state))
                     .range([marginLeft, width - marginRight])
                     .padding(0.1);
 
-                const y = d3.scaleLinear()
+                const yScale = d3.scaleLinear()
                     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-                    .range([marginTop, height - marginBottom]); // Y ekseni yukarıdan aşağıya doğru artacak şekilde ayarlandı
+                    .range([marginTop, height - marginBottom]);
 
                 const color = d3.scaleOrdinal()
                     .domain(series.map(d => d.key))
@@ -504,9 +507,8 @@
                     .attr("height", height)
                     .attr("viewBox", [0, 0, width, height])
                     .attr("style", "max-width: 100%; height: auto;")
-                    .call(zoom); // Zoom davranışı burada ekleniyor
+                    .call(zoom);
 
-                // Çubukları ekle
                 svg.append("g")
                     .selectAll("g")
                     .data(series)
@@ -515,22 +517,20 @@
                     .selectAll("rect")
                     .data(D => D.map(d => (d.key = D.key, d)))
                     .join("rect")
-                    .attr("x", d => x(d.data[0]))
-                    .attr("y", d => y(d[0])) // Zoom işlemi için güncellendi
-                    .attr("height", d => y(d[1]) - y(d[0])) // Zoom işlemi için güncellendi
-                    .attr("width", x.bandwidth())
+                    .attr("x", d => xScale(d.data[0]))
+                    .attr("y", d => yScale(d[0]))
+                    .attr("height", d => yScale(d[1]) - yScale(d[0]))
+                    .attr("width", xScale.bandwidth())
                     .append("title")
                     .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key).depth.toLocaleString("tr")}`);
 
-                // Y eksenini ekle ve aralıkları 100'er 100'er ayarla
                 const yAxis = svg.append("g")
                     .attr("transform", `translate(${marginLeft}, 0)`)
-                    .call(d3.axisLeft(y)
-                        .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
-                        .tickFormat(d3.format("d"))) // Bu satır 100'er 100'er aralık ayarlamayı sağlar
+                    .call(d3.axisLeft(yScale)
+                        .ticks(Math.ceil((yScale.domain()[1] - yScale.domain()[0]) / 100))
+                        .tickFormat(d3.format("d")))
                     .call(g => g.select(".domain").remove());
 
-                // Zoom fonksiyonu
                 function zoom(svg) {
                     const extent = [[marginLeft, marginTop], [width - marginRight, height - marginBottom]];
 
@@ -541,19 +541,16 @@
                         .on("zoom", zoomed));
 
                     function zoomed(event) {
-                        y.range([marginTop, height - marginBottom].map(d => event.transform.applyY(d)));
+                        yScale.range([marginTop, height - marginBottom].map(d => event.transform.applyY(d)));
                         svg.selectAll("rect")
-                            .attr("y", d => y(d[0]))
-                            .attr("height", d => y(d[1]) - y(d[0]));
-                        yAxis.call(d3.axisLeft(y)
-                            .ticks(Math.ceil((y.domain()[1] - y.domain()[0]) / 100))
-                            .tickFormat(d3.format("d"))); // Zoom sırasında da 100'er 100'er aralıkları tut
+                            .attr("y", d => yScale(d[0]))
+                            .attr("height", d => yScale(d[1]) - yScale(d[0]));
+                        yAxis.call(d3.axisLeft(yScale)
+                            .ticks(Math.ceil((yScale.domain()[1] - yScale.domain()[0]) / 100))
+                            .tickFormat(d3.format("d")));
                     }
                 }
-
-
             }
-
 
         });
     </script>

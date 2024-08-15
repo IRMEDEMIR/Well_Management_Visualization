@@ -7,6 +7,48 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ParsingProjectMVC.styles.css" asp-append-version="true" />
+    <style>
+        .navbar-nav {
+            display: flex;
+            width: 100%;
+            align-items: center;
+        }
+
+            .navbar-nav .nav-item {
+                margin-left: 20px;
+            }
+
+                .navbar-nav .nav-item:first-child {
+                    margin-left: 0;
+                }
+
+                .navbar-nav .nav-item:not(:first-child) {
+                    margin-left: 20px;
+                }
+
+                .navbar-nav .nav-item:last-child {
+                    margin-right: 20px;
+                }
+
+        .nav-left {
+            margin-right: auto;
+        }
+
+        .nav-right {
+            margin-left: auto;
+        }
+
+        .nav-link, .navbar-brand {
+            transition: transform 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+            font-size: 1.25rem; /* Hafif büyütme */
+        }
+
+            .nav-link:hover, .navbar-brand:hover {
+                color: #0056b3; /* Renk değişimi */
+                text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); /* Hafif gölge */
+                transform: scale(1.05); /* Hafif büyüme */
+            }
+    </style>
 </head>
 <body>
     <header>
@@ -14,24 +56,29 @@
             <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="~/images/logo.png" alt="Logo" style="height: 40px;" />
-                     Kuyu Lokasyonları
+                    Kuyu Lokasyonları
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto d-flex justify-content-end">
-                        <li class="nav-item">
+                    <ul class="navbar-nav d-flex align-items-center">
+                        <!-- Sol tarafa yaslanacak "Hakkımızda" bağlantısı -->
+                        <li class="nav-item nav-left">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Hakkımızda</a>
+                        </li>
+                        <!-- Sağ tarafa yaslanacak diğer bağlantılar -->
+                        <li class="nav-item nav-right">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Sahalar" asp-action="Index">Sahalar</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item nav-right">
                             <a class="nav-link text-dark" asp-area="" asp-controller="KuyuGruplari" asp-action="Index">Kuyu Grupları</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item nav-right">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Kuyular" asp-action="Index">Kuyular</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item nav-right">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Wellborelar" asp-action="Index">Wellborelar</a>
                         </li>
                     </ul>
@@ -47,7 +94,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - Türkiye Petrolleri Anonim Ortaklığı - <a asp-area="" asp-controller="Home" asp-action="privacy">Ana Sayfa</a>
+            &copy; 2024 - Türkiye Petrolleri Anonim Ortaklığı - <a asp-area="" asp-controller="Home" asp-action="privacy">Hakkımızda</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

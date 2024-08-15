@@ -11,13 +11,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         #drop-zone {
-            border: 2px dashed #007bff;
+            border: 2px dashed #a2a29f;
             border-radius: 5px;
             padding: 20px;
             text-align: center;
             margin: 20px;
             font-size: 18px;
-            color: #007bff;
+            color: #a2a29f;
         }
 
         #graph-container {
@@ -338,6 +338,7 @@
                             zaxis: { title: 'Z', range: [zRange, 0] }
                         },
                         title: '3D Well Path'
+
                     };
 
                     Plotly.newPlot('combined-plot', combinedData, layout);

@@ -398,11 +398,6 @@
                     return;
                 }
 
-                if (originalFormations.length === 0) {
-                    console.error("Önce formasyon dosyası yükleyin.");
-                    return;
-                }
-
                 let formations = [...originalFormations];
                 let lastWellboreMD = wellboreData[wellboreData.length - 1]?.MD || 0;
 
@@ -436,17 +431,8 @@
                         }
                     }
 
-                    if (!foundTop) {
-                        if (originalTopDepth > lastWellboreMD) {
-                            newTopMD = previousBottomMD; // Önceki alt derinliği kullan
-                        }
-                    }
-
-                    if (!foundBottom) {
-                        if (originalBottomDepth > lastWellboreMD) {
-                            // TVD verisinin bittiği yerden sonra formasyonun alt derinliğini hesaplama
-                            newBottomMD = previousBottomMD + (originalBottomDepth - originalTopDepth); // Kendi derinlik farkını ekleyin
-                        }
+                    if (originalTopDepth < wellboreData[0].TVD || originalTopDepth > wellboreData[wellboreData.length - 1].TVD) {
+                        newTopMD = previousBottomMD;
                     }
 
                     // Formasyonun alt derinlik hesaplaması
@@ -456,6 +442,7 @@
 
                     // Güncellenmiş alt derinliği kaydet
                     previousBottomMD = newBottomMD || previousBottomMD;
+                    formation['Alt Derinlik (TVD)'] = newBottomMD - newTopMD;
 
                     console.log(`Formasyon: ${formation['Formasyon']}, Yeni Üst Derinlik(MD): ${newTopMD}, Yeni Alt Derinlik(MD): ${newBottomMD}`);
                 });

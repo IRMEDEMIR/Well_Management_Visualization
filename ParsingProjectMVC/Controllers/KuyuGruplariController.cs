@@ -1,128 +1,179 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using CsvHelper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 using ParsingProjectMVC.Models;
-using System;
-using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class KuyuGruplariController : Controller
     {
-        private readonly Services.ParsingDbContext _context;
-        public KuyuGruplariController(Services.ParsingDbContext context)
+        private readonly IWebHostEnvironment _env;
+        private readonly string _filePath;
+        private List<KuyuGrubuModel> kuyuGruplari = new List<KuyuGrubuModel>();
+
+        public KuyuGruplariController(IWebHostEnvironment env)
         {
-            _context = context;
+            _env = env;
+            _filePath = Path.Combine(_env.WebRootPath, "data", "Kuyu Grupları.csv");
+            LoadKuyuGruplariFromCsv();
         }
 
-        // listeleme
-        [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1,  int pageSize = 50)
+        private void LoadKuyuGruplariFromCsv()
         {
-            var pagedKuyuGruplari =  await _context.KuyuGrubu
-                .Skip((pageNumber -1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var totalItems = await _context.KuyuGrubu.CountAsync();
-            
-            ViewBag.PageNumber = pageNumber;
-            ViewBag.PageSize = pageSize;    
-            ViewBag.TotalItems = totalItems;
-
-            return View(pagedKuyuGruplari);
+            try
+            {
+                using (var reader = new StreamReader(_filePath))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var records = csv.GetRecords<dynamic>().ToList();
+                    int idCounter = 1;
+                    foreach (var record in records)
+                    {
+                        kuyuGruplari.Add(new KuyuGrubuModel
+                        {
+                            Id = idCounter++,
+                            KuyuGrubuAdi = record.KuyuGrubuAdi,
+                            SahaAdi = null // burayı kontrol et
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
+            }
         }
 
-        //yeni kuyu grubu ekleme
+        private void SaveKuyuGruplariToCsv()
+        {
+            try
+            {
+                using (var writer = new StreamWriter(_filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(kuyuGruplari.Select(k => new { KuyuGrubuAdi = k.KuyuGrubuAdi }));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
+            }
+        }
+
         [HttpPost]
-        public async Task<IActionResult> Create(string kuyuGrubuAdi, int pageNumber = 1, int  pageSize = 50)
+        public IActionResult Create(string kuyuGrubuAdi, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+$");
 
-            //client-side evaluation (toList ile veriyi çekip öyle sorgulama)
-            var kuyuGruplari = await _context.KuyuGrubu.ToListAsync();
             bool isExisting = kuyuGruplari.Any(k => k.KuyuGrubuAdi.Equals(kuyuGrubuAdi, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(kuyuGrubuAdi) && regex.IsMatch(kuyuGrubuAdi) && !isExisting)
             {
                 var newKuyuGrubu = new KuyuGrubuModel
                 {
+                    Id = kuyuGruplari.Count > 0 ? kuyuGruplari.Max(k => k.Id) + 1 : 1,
                     KuyuGrubuAdi = kuyuGrubuAdi
                 };
-                _context.KuyuGrubu.Add(newKuyuGrubu);   
-                await _context.SaveChangesAsync();
+                kuyuGruplari.Add(newKuyuGrubu);
+                SaveKuyuGruplariToCsv();
                 TempData["SuccessMessage"] = "Kuyu Grubu başarıyla eklendi!";
             }
             else
             {
                 if (isExisting)
                 {
-                    TempData["ErrorMessage"] = "Bu Kuyu grubu adı zaten mevcut.";
+                    TempData["ErrorMessage"] = "Kuyu Grubu adı zaten mevcut.";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Kuyu grubu adı yalnızca büyük harf ve boşluk içermelidir.";
+                    TempData["ErrorMessage"] = "Kuyu Grubu adı formatınız doğru değil.";
                 }
             }
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
-        //kuyu grubu silme
         [HttpPost]
-        public async Task<IActionResult> Delete(int id, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
-            var kuyuGrubu = await _context.KuyuGrubu.FindAsync(id);
-            if (kuyuGrubu != null) 
-            { 
-                _context.KuyuGrubu.Remove(kuyuGrubu);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Kuyu grubu başarıyla silindi!";
+            var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+            if (kuyuGrubu != null)
+            {
+                kuyuGruplari.Remove(kuyuGrubu);
+                SaveKuyuGruplariToCsv();
+                TempData["SuccessMessage"] = "Kuyu Grubu başarıyla silindi!";
             }
             else
             {
-                TempData["ErrorMessage"] = "Kuyu grubu bulunamadı.";
+                TempData["ErrorMessage"] = "Kuyu Grubu bulunamadı!";
             }
-
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
-        //kuyu grubu güncelleme
+        [HttpGet]
+        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
+        {
+            var pagedKuyuGruplari = kuyuGruplari
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var totalItems = kuyuGruplari.Count;
+
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+
+            return View(pagedKuyuGruplari);
+        }
+
+        [HttpGet]
+        public IActionResult Update(int id)
+        {
+            var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
+            if (kuyuGrubu == null)
+            {
+                return NotFound();
+            }
+            return View(kuyuGrubu);
+        }
+
         [HttpPost]
-        public async Task<IActionResult> Update(int id, KuyuGrubuModel updatedKuyuGrubu, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Update(int id, KuyuGrubuModel updatedKuyuGrubu, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+$");
-            var kuyuGrubu = await _context.KuyuGrubu.FindAsync(id);
+
+            var kuyuGrubu = kuyuGruplari.FirstOrDefault(k => k.Id == id);
 
             if (kuyuGrubu == null)
             {
-                TempData["ErrorMessage"] = "Güncellenecek saha bulunamadı.";
+                TempData["ErrorMessage"] = "Güncellenecek Kuyu Grubu bulunamadı.";
                 return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
-            // Client-side evaluation (ToList ile veriyi çekip öyle sorgulama)
-            var kuyuGruplari = await _context.KuyuGrubu.ToListAsync();
-            bool isExisting = kuyuGruplari.Any(k => k.KuyuGrubuAdi.Equals(updatedKuyuGrubu.KuyuGrubuAdi, StringComparison.OrdinalIgnoreCase) && k.Id != id);
+            bool isExisting = kuyuGruplari.Any(kg => kg.KuyuGrubuAdi.Equals(updatedKuyuGrubu.KuyuGrubuAdi, StringComparison.OrdinalIgnoreCase) && kg.Id != id);
 
-            if (!string.IsNullOrEmpty(updatedKuyuGrubu.KuyuGrubuAdi) && regex.IsMatch(updatedKuyuGrubu.KuyuGrubuAdi) && !isExisting)
+            if (!regex.IsMatch(updatedKuyuGrubu.KuyuGrubuAdi))
             {
-                kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Saha başarıyla güncellendi!";
-            }
-            else
-            {
-                if (isExisting)
-                {
-                    TempData["ErrorMessage"] = "Bu saha adı kullanılmakta.";
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Saha adı yalnızca büyük harf ve boşluk içermelidir.";
-                }
+                TempData["ErrorMessage"] = "Kuyu Grubu adı formatınız doğru değil.";
+                return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
+            if (isExisting)
+            {
+                TempData["ErrorMessage"] = "Bu Kuyu Grubu adı kullanılmaktadır.";
+                return RedirectToAction("Index", new { pageNumber, pageSize });
+            }
+
+            kuyuGrubu.KuyuGrubuAdi = updatedKuyuGrubu.KuyuGrubuAdi;
+            SaveKuyuGruplariToCsv();
+            TempData["SuccessMessage"] = "Kuyu Grubu başarıyla güncellendi!";
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
     }

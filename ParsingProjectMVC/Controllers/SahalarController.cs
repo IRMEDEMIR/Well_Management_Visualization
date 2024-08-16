@@ -1,32 +1,79 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ParsingProjectMVC.Models;
-using System;
+using CsvHelper;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class SahalarController : Controller
     {
-        private readonly Services.ParsingDbContext _context;
+        private readonly IWebHostEnvironment _env;
+        private readonly string _filePath;
+        private List<SahaModel> sahalar = new List<SahaModel>();
 
-        public SahalarController(Services.ParsingDbContext context)
+        public SahalarController(IWebHostEnvironment env)
         {
-            _context = context;
+            _env = env;
+            _filePath = Path.Combine(_env.WebRootPath, "data", "Sahalar.csv");
+            LoadSahalarFromCsv();
         }
 
-        // Listeleme işlemi
-        [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 50)
+        private void LoadSahalarFromCsv()
         {
-            var pagedSahalar = await _context.Saha
+            try
+            {
+                using (var reader = new StreamReader(_filePath))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var records = csv.GetRecords<dynamic>().ToList();
+                    int idCounter = 1;
+                    foreach (var record in records)
+                    {
+                        sahalar.Add(new SahaModel
+                        {
+                            Id = idCounter++,
+                            SahaAdi = record.SahaAdi
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
+            }
+        }
+
+        private void SaveSahalarToCsv()
+        {
+            try
+            {
+                using (var writer = new StreamWriter(_filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(sahalar.Select(s => new { SahaAdi = s.SahaAdi }));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata yönetimi
+                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
+        {
+            var pagedSahalar = sahalar
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToList();
 
-            var totalItems = await _context.Saha.CountAsync();
+            var totalItems = sahalar.Count;
 
             ViewBag.PageNumber = pageNumber;
             ViewBag.PageSize = pageSize;
@@ -35,24 +82,22 @@ namespace ParsingProjectMVC.Controllers
             return View(pagedSahalar);
         }
 
-        // Yeni saha ekleme işlemi
         [HttpPost]
-        public async Task<IActionResult> Create(string sahaAdi, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Create(string sahaAdi, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z\s]+$");
 
-            // Client-side evaluation (ToList ile veriyi çekip öyle sorgulama)
-            var sahalar = await _context.Saha.ToListAsync();
             bool isExisting = sahalar.Any(s => s.SahaAdi.Equals(sahaAdi, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(sahaAdi) && regex.IsMatch(sahaAdi) && !isExisting)
             {
                 var newSaha = new SahaModel
                 {
+                    Id = sahalar.Count > 0 ? sahalar.Max(s => s.Id) + 1 : 1,
                     SahaAdi = sahaAdi
                 };
-                _context.Saha.Add(newSaha);
-                await _context.SaveChangesAsync();
+                sahalar.Add(newSaha);
+                SaveSahalarToCsv();
                 TempData["SuccessMessage"] = "Saha başarıyla eklendi!";
             }
             else
@@ -69,30 +114,28 @@ namespace ParsingProjectMVC.Controllers
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
-        // Saha silme işlemi
         [HttpPost]
-        public async Task<IActionResult> Delete(int id, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
-            var saha = await _context.Saha.FindAsync(id);
+            var saha = sahalar.FirstOrDefault(s => s.Id == id);
             if (saha != null)
             {
-                _context.Saha.Remove(saha);
-                await _context.SaveChangesAsync();
+                sahalar.Remove(saha);
+                SaveSahalarToCsv();
                 TempData["SuccessMessage"] = "Saha başarıyla silindi!";
             }
             else
             {
-                TempData["ErrorMessage"] = "Saha bulunamadı.";
+                TempData["ErrorMessage"] = "Saha bulunamadı!";
             }
 
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
-        // Saha güncelleme sayfasını getir
         [HttpGet]
-        public async Task<IActionResult> Update(int id)
+        public IActionResult Update(int id)
         {
-            var saha = await _context.Saha.FindAsync(id);
+            var saha = sahalar.FirstOrDefault(s => s.Id == id);
             if (saha == null)
             {
                 return NotFound();
@@ -100,34 +143,31 @@ namespace ParsingProjectMVC.Controllers
             return View(saha);
         }
 
-        // Saha güncelleme işlemi
         [HttpPost]
-        public async Task<IActionResult> Update(int id, SahaModel updatedSaha, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Update(int id, SahaModel updatedSaha, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^[A-Z\s]+$");
-            var saha = await _context.Saha.FindAsync(id);
+            var saha = sahalar.FirstOrDefault(s => s.Id == id);
 
             if (saha == null)
             {
                 TempData["ErrorMessage"] = "Güncellenecek saha bulunamadı.";
-                return RedirectToAction("Index", new { pageNumber, pageSize });
+                return RedirectToAction("Index");
             }
 
-            // Client-side evaluation (ToList ile veriyi çekip öyle sorgulama)
-            var sahalar = await _context.Saha.ToListAsync();
             bool isExisting = sahalar.Any(s => s.SahaAdi.Equals(updatedSaha.SahaAdi, StringComparison.OrdinalIgnoreCase) && s.Id != id);
 
             if (!string.IsNullOrEmpty(updatedSaha.SahaAdi) && regex.IsMatch(updatedSaha.SahaAdi) && !isExisting)
             {
                 saha.SahaAdi = updatedSaha.SahaAdi;
-                await _context.SaveChangesAsync();
+                SaveSahalarToCsv();
                 TempData["SuccessMessage"] = "Saha başarıyla güncellendi!";
             }
             else
             {
                 if (isExisting)
                 {
-                    TempData["ErrorMessage"] = "Bu saha adı kullanılmakta.";
+                    TempData["ErrorMessage"] = "Bu saha adı kullanılmaktadır.";
                 }
                 else
                 {

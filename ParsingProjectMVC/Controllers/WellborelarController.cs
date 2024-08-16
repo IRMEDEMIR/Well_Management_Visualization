@@ -1,49 +1,87 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using CsvHelper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using ParsingProjectMVC.Models;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class WellborelarController : Controller
     {
-        private readonly Services.ParsingDbContext _context;
+        private readonly string _filePath;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private List<WellboreModel> wellborelar = new List<WellboreModel>();
 
-        public WellborelarController(Services.ParsingDbContext context)
+        public WellborelarController(IWebHostEnvironment webHostEnvironment)
         {
-            _context = context;
+            _webHostEnvironment = webHostEnvironment;
+            _filePath = Path.Combine(_webHostEnvironment.WebRootPath, "data", "Wellborelar.csv");
+            LoadWellborelarFromCsv();
         }
 
-        // Listeleme işlemi
-        [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 50)
+        private void LoadWellborelarFromCsv()
         {
-            var pagedWellborelar = await _context.Wellbore
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var totalItems = await _context.Wellbore.CountAsync();
-
-            ViewBag.PageNumber = pageNumber;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalItems = totalItems;
-
-            return View(pagedWellborelar);
+            try
+            {
+                using (var reader = new StreamReader(_filePath))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var records = csv.GetRecords<dynamic>().ToList();
+                    int idCounter = 1;
+                    foreach (var record in records)
+                    {
+                        wellborelar.Add(new WellboreModel
+                        {
+                            Id = idCounter++,
+                            WellboreAdi = record.WellboreAdi,
+                            Derinlik = record.Derinlik,
+                            KuyuGrubuAdi = null,
+                            KuyuAdi = null,
+                            SahaAdi = null
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Error handling
+                Console.WriteLine($"CSV dosyası okunurken bir hata oluştu: {ex.Message}");
+            }
         }
 
-        // Yeni wellbore ekleme işlemi
+        private void SaveWellborelarToCsv()
+        {
+            try
+            {
+                using (var writer = new StreamWriter(_filePath))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(wellborelar.Select(w => new
+                    {
+                        w.WellboreAdi,
+                        w.Derinlik // Save depth value
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Error handling
+                Console.WriteLine($"CSV dosyasına yazılırken bir hata oluştu: {ex.Message}");
+            }
+        }
+
         [HttpPost]
-        public async Task<IActionResult> Create(string wellboreAdi, string derinlik, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Create(string wellboreAdi, string derinlik, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?(\/[SMR]\d*)*$");
 
             if (!string.IsNullOrEmpty(wellboreAdi) && regex.IsMatch(wellboreAdi))
             {
-                var allWellbores = await _context.Wellbore.ToListAsync();
-                bool isExisting = allWellbores.Any(w => w.WellboreAdi.Equals(wellboreAdi, StringComparison.OrdinalIgnoreCase));
+                bool isExisting = wellborelar.Any(w => w.WellboreAdi.Equals(wellboreAdi, StringComparison.OrdinalIgnoreCase));
                 if (isExisting)
                 {
                     TempData["ErrorMessage"] = "Bu Wellbore adı zaten mevcut.";
@@ -52,12 +90,12 @@ namespace ParsingProjectMVC.Controllers
 
                 var newWellbore = new WellboreModel
                 {
+                    Id = wellborelar.Count > 0 ? wellborelar.Max(w => w.Id) + 1 : 1,
                     WellboreAdi = wellboreAdi,
                     Derinlik = derinlik
                 };
-                _context.Wellbore.Add(newWellbore);
-                await _context.SaveChangesAsync();
-
+                wellborelar.Add(newWellbore);
+                SaveWellborelarToCsv();
                 TempData["SuccessMessage"] = "Wellbore başarıyla eklendi!";
                 return RedirectToAction("Index", new { pageNumber, pageSize });
             }
@@ -68,30 +106,44 @@ namespace ParsingProjectMVC.Controllers
             }
         }
 
-        // Wellbore silme işlemi
         [HttpPost]
-        public async Task<IActionResult> Delete(int id, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Delete(int id, int pageNumber = 1, int pageSize = 50)
         {
-            var wellboreToDelete = await _context.Wellbore.FindAsync(id);
+            var wellboreToDelete = wellborelar.FirstOrDefault(k => k.Id == id);
             if (wellboreToDelete != null)
             {
-                _context.Wellbore.Remove(wellboreToDelete);
-                await _context.SaveChangesAsync();
+                wellborelar.Remove(wellboreToDelete);
+                SaveWellborelarToCsv();
                 TempData["SuccessMessage"] = "Wellbore başarıyla silindi!";
             }
             else
             {
-                TempData["ErrorMessage"] = "Wellbore bulunamadı.";
+                TempData["ErrorMessage"] = "Wellbore bulunamadı!";
             }
-
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }
 
-        // Wellbore güncelleme sayfasını getir
         [HttpGet]
-        public async Task<IActionResult> Update(int id)
+        public IActionResult Index(int pageNumber = 1, int pageSize = 50)
         {
-            var wellbore = await _context.Wellbore.FindAsync(id);
+            var pagedWellborelar = wellborelar
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var totalItems = wellborelar.Count;
+
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+
+            return View(pagedWellborelar);
+        }
+
+        [HttpGet]
+        public IActionResult Update(int id)
+        {
+            var wellbore = wellborelar.FirstOrDefault(k => k.Id == id);
             if (wellbore == null)
             {
                 return NotFound();
@@ -99,13 +151,12 @@ namespace ParsingProjectMVC.Controllers
             return View(wellbore);
         }
 
-        // Wellbore güncelleme işlemi
         [HttpPost]
-        public async Task<IActionResult> Update(int id, WellboreModel updatedWellbore, int pageNumber = 1, int pageSize = 50)
+        public IActionResult Update(int id, WellboreModel updatedWellbore, int pageNumber = 1, int pageSize = 50)
         {
             var regex = new Regex(@"^([A-Z]+(\s[A-Z]+)*)-\d+(\/K\d*)?(\/[SMR]\d*)*$");
 
-            var wellbore = await _context.Wellbore.FindAsync(id);
+            var wellbore = wellborelar.FirstOrDefault(w => w.Id == id);
 
             if (wellbore == null)
             {
@@ -119,18 +170,16 @@ namespace ParsingProjectMVC.Controllers
                 return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
-            var allWellbores = await _context.Wellbore.ToListAsync();
-            bool isExisting = allWellbores.Any(w => w.WellboreAdi.Equals(updatedWellbore.WellboreAdi, StringComparison.OrdinalIgnoreCase) && w.Id != id);
+            bool isExisting = wellborelar.Any(w => w.WellboreAdi.Equals(updatedWellbore.WellboreAdi, StringComparison.OrdinalIgnoreCase) && w.Id != id);
             if (isExisting)
             {
-                TempData["ErrorMessage"] = "Bu Wellbore adı kullanılmakta.";
+                TempData["ErrorMessage"] = "Bu Wellbore adı kullanılmaktadır.";
                 return RedirectToAction("Index", new { pageNumber, pageSize });
             }
 
             wellbore.WellboreAdi = updatedWellbore.WellboreAdi;
             wellbore.Derinlik = updatedWellbore.Derinlik;
-            await _context.SaveChangesAsync();
-
+            SaveWellborelarToCsv();
             TempData["SuccessMessage"] = "Wellbore başarıyla güncellendi!";
             return RedirectToAction("Index", new { pageNumber, pageSize });
         }

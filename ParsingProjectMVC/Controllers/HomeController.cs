@@ -1,28 +1,55 @@
-
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ParsingProjectMVC.Models;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.Collections.Generic;
 
 namespace ParsingProjectMVC.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly Services.ParsingDbContext _context;
+        private List<KuyuModel> kuyular = new List<KuyuModel>();
 
-        public HomeController(ILogger<HomeController> logger, Services.ParsingDbContext context)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            _context = context;
+            LoadKuyularFromCsv();
         }
 
-        public async Task<IActionResult> Index()
+        private void LoadKuyularFromCsv()
         {
-            var kuyular = await _context.Kuyu.ToListAsync();
+            try
+            {
+                // Proje dizininden dosya yolunu oluþturun
+                var projectRootPath = Directory.GetCurrentDirectory();
+                var filePath = Path.Combine(projectRootPath, "wwwroot", "data", "Kuyular.csv");
+
+                using (var reader = new StreamReader(filePath))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                    {
+                        HeaderValidated = null,  // Baþlýk doðrulamasýný devre dýþý býrak
+                        MissingFieldFound = null // Eksik alan bulunduðunda hata fýrlatmayý devre dýþý býrak
+                    };
+                    csv.Context.RegisterClassMap<KuyuModelMap>();
+                    kuyular = csv.GetRecords<KuyuModel>().ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading CSV file: {ex.Message}");
+            }
+        }
+
+        public IActionResult Index()
+        {
             return View(kuyular);
         }
 
@@ -31,14 +58,9 @@ namespace ParsingProjectMVC.Controllers
             return View();
         }
 
+
         public IActionResult KuyuDetail()
         {
-            // CSV dosyasýnýn URL'sini belirleyin
-            var csvFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "WellboreGeometrisi.csv");
-
-            // CSV dosyasýnýn yolu ve adý view'a ViewBag ile gönderildi
-            ViewBag.CsvFilePath = csvFilePath;
-
             return View();
         }
 
@@ -47,10 +69,21 @@ namespace ParsingProjectMVC.Controllers
             return View();
         }
 
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+
+    public sealed class KuyuModelMap : ClassMap<KuyuModel>
+    {
+        public KuyuModelMap()
+        {
+            Map(m => m.KuyuAdi).Name("KuyuAdi");
+            Map(m => m.Enlem).Name("Enlem").Optional();
+            Map(m => m.Boylam).Name("Boylam").Optional();
         }
     }
 }

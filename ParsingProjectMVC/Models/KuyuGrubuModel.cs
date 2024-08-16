@@ -5,11 +5,10 @@ namespace ParsingProjectMVC.Models
 {
     public class KuyuGrubuModel
     {
-       
-        public int Id { get; set; } 
+
+        public int Id { get; set; }
         public string KuyuGrubuAdi { get; set; }
         //[ForeignKey("SahaId")]
-        public int SahaId { get; set; }
-        public SahaModel Saha { get; set; }
+        public SahaModel SahaAdi { get; set; }
     }
 }

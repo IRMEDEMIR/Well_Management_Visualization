@@ -47,7 +47,8 @@ Herhangi bir sorunuz veya öneriniz varsa,
 - halilhazarrr@gmail.com 
 - baris.uzumcu@gmail.com 
 - akvk511@gmail.com
-- hilalnurevsan25@gmail.com   
+- hilalnurevsan25@gmail.com
+- erdil.alinadir@gmail.com
 e-mail adreslerinden bizimle iletişime geçebilirsiniz.
 
 

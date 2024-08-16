@@ -42,7 +42,14 @@ Kuyu Lokasyonları: Kuyu lokasyonlarını harita üzerinde görüntüleyin ve de
 - Halil Hazar TEMİZYÜREK - Proje geliştiricisi
 
 ## İletişim
-Herhangi bir sorunuz veya öneriniz varsa, demirirem.0202@gmail.com adresinden bizimle iletişime geçebilirsiniz.
+Herhangi bir sorunuz veya öneriniz varsa, 
+- demirirem.0202@gmail.com
+- halilhazarrr@gmail.com 
+- baris.uzumcu@gmail.com 
+- akvk511@gmail.com
+- hilalnurevsan25@gmail.com   
+e-mail adreslerinden bizimle iletişime geçebilirsiniz.
+
 
 
 
